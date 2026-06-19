@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulaciones — LRG · Redes Complejas</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a href="../index.html" class="logo">LRG · Redes Complejas</a>
+  <nav class="header-nav">
+    <a href="../index.html">Inicio</a>
+    <a href="theory.html">Teoría</a>
+    <a href="simulations.html">Simulaciones</a>
+    <a href="results.html">Resultados</a>
+    <a href="notes.html">Notas</a>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <div class="content-area">
+
+    <h1>Simulaciones</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+      Gráficos cargados desde <code>/data/*.json</code>. Arrastrá para hacer zoom,
+      doble click para resetear. Todos los ejes se reescalan automáticamente.
+    </p>
+
+    <!-- ─── PLOT 1: P∞(p) ──────────────────────────────────────── -->
+    <h2>Componente gigante \(P_\infty(p)\)</h2>
+
+    <div class="plot-card">
+      <div class="plot-card-header">
+        <span class="plot-card-title">\(P_\infty(p)\) — fracción del componente gigante</span>
+        <span class="plot-card-meta" id="meta-pinf">—</span>
+      </div>
+      <div class="plot-container" id="plot-pinf"></div>
+      <div class="plot-controls">
+        <span>Topología:</span>
+        <button class="btn active" id="btn-t-er"  onclick="toggleNet('er')">ER</button>
+        <button class="btn"        id="btn-t-ba"  onclick="toggleNet('ba')">BA</button>
+        <button class="btn"        id="btn-t-rrg" onclick="toggleNet('rrg')">RRG</button>
+        <button class="btn"        id="btn-t-lrg" onclick="toggleNet('lrg')">LRG-renorm</button>
+        &nbsp;
+        <button class="btn" onclick="resetZoom('plot-pinf')"><i class="ti ti-refresh"></i> Reset zoom</button>
+      </div>
+    </div>
+
+    <!-- ─── PLOT 2: Susceptibilidad ────────────────────────────── -->
+    <h2>Susceptibilidad \(\chi(p)\)</h2>
+
+    <div class="plot-card">
+      <div class="plot-card-header">
+        <span class="plot-card-title">Susceptibilidad del cluster finito \(\chi(p)\)</span>
+        <span class="plot-card-meta" id="meta-chi">—</span>
+      </div>
+      <div class="plot-container" id="plot-chi"></div>
+      <div class="plot-controls">
+        <button class="btn active" id="btn-chi-lin" onclick="setChiScale('linear')">Lineal</button>
+        <button class="btn"        id="btn-chi-log" onclick="setChiScale('log')">Log–Log</button>
+        <button class="btn" onclick="resetZoom('plot-chi', ['yaxis2'])"><i class="ti ti-refresh"></i> Reset zoom</button>
+      </div>
+    </div>
+
+    <p class="callout info">
+      Los datos de ejemplo son sintéticos. Para cargar tus resultados de Julia,
+      reemplazá <code>data/er_percolation_demo.json</code> con el output real de
+      <code>JSON3.write()</code>. El schema esperado está documentado en cada archivo JSON.
+    </p>
+
+    <!-- ─── INSTRUCCIONES DE ZOOM ──────────────────────────────── -->
+    <h2>Controles de zoom</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+      <div class="result-card">
+        <div class="result-title">Zoom rectangular</div>
+        <div class="result-body">Arrastrá un rectángulo sobre cualquier región de la curva. Los ejes \(x\) e \(y\) se reescalan a esa ventana.</div>
+      </div>
+      <div class="result-card">
+        <div class="result-title">Zoom con scroll</div>
+        <div class="result-body">Scroll del mouse hace zoom centrado en el cursor. Útil para explorar la región crítica alrededor de \(p_c\).</div>
+      </div>
+      <div class="result-card">
+        <div class="result-title">Reset</div>
+        <div class="result-body">Doble click sobre el gráfico, o el botón "Reset zoom", vuelve al rango completo.</div>
+      </div>
+      <div class="result-card">
+        <div class="result-title">Pan</div>
+        <div class="result-body">Hacé click derecho y arrastrá para mover la vista sin cambiar el zoom actual.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  Diego Dorado · LRG en Redes Complejas · FaMAF UNC · 2025
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+// ── Estado de visibilidad por topología ──────────────────────────
+// indices en el array de traces: 0=ER, 1=BA(placeholder), 2=RRG(placeholder), 3=LRG(placeholder)
+const netState = { er: true, ba: false, rrg: false, lrg: false };
+
+(async () => {
+  const d = await loadData('er_percolation_demo.json');
+  if (!d) return;
+
+  document.getElementById('meta-pinf').textContent =
+    `ER · N=${(d.N/1000).toFixed(0)}k · <k>=${d.mean_k}`;
+  document.getElementById('meta-chi').textContent =
+    `ER · N=${(d.N/1000).toFixed(0)}k · ${d.realizations} realizaciones`;
+
+  // ── Plot P∞ ────────────────────────────────────────────────────
+  const pcLine = {
+    type: 'line', x0: d.p_c, x1: d.p_c, y0: 0, y1: 1, yref: 'paper',
+    line: { color: 'rgba(255,255,255,0.15)', dash: 'dash', width: 1 }
+  };
+
+  const layoutPinf = {
+    ...plotlyLayout,
+    shapes: [pcLine],
+    annotations: [{
+      x: d.p_c, y: 0.95, yref: 'paper',
+      text: `p<sub>c</sub> = ${d.p_c}`,
+      showarrow: false,
+      font: { size: 11, color: '#555d72', family: "'JetBrains Mono', monospace" },
+      xanchor: 'left', xshift: 8
+    }],
+    xaxis: { ...plotlyLayout.xaxis, title: { text: 'p', font: { size: 12 } } },
+    yaxis: { ...plotlyLayout.yaxis, title: { text: 'P∞(p)', font: { size: 12 } },
+             range: [-0.02, 1.02] },
+  };
+
+  Plotly.newPlot('plot-pinf', [
+    {
+      x: d.p, y: d.giant_component,
+      type: 'scatter', mode: 'lines',
+      name: 'ER',
+      line: { color: COLORS.blue, width: 2 },
+      visible: true
+    },
+    // Placeholders — reemplazar con datos reales cuando estén disponibles
+    { x: [], y: [], type: 'scatter', mode: 'lines', name: 'BA',
+      line: { color: COLORS.green, width: 2 }, visible: false },
+    { x: [], y: [], type: 'scatter', mode: 'lines', name: 'RRG',
+      line: { color: COLORS.orange, width: 2 }, visible: false },
+    { x: [], y: [], type: 'scatter', mode: 'lines', name: 'LRG-renorm',
+      line: { color: COLORS.purple, width: 2, dash: 'dot' }, visible: false },
+  ], layoutPinf, plotlyConfig);
+
+  // ── Plot χ ─────────────────────────────────────────────────────
+  const layoutChi = {
+    ...plotlyLayout,
+    shapes: [pcLine],
+    xaxis: { ...plotlyLayout.xaxis, title: { text: 'p', font: { size: 12 } } },
+    yaxis: { ...plotlyLayout.yaxis, title: { text: 'χ(p)', font: { size: 12 } } },
+  };
+
+  Plotly.newPlot('plot-chi', [
+    {
+      x: d.p, y: d.susceptibility,
+      type: 'scatter', mode: 'lines',
+      name: 'χ — ER',
+      line: { color: COLORS.orange, width: 2 },
+    },
+  ], layoutChi, plotlyConfig);
+
+})();
+
+// ── Toggle topología ─────────────────────────────────────────────
+const netIndex = { er: 0, ba: 1, rrg: 2, lrg: 3 };
+const netBtn   = { er: 'btn-t-er', ba: 'btn-t-ba', rrg: 'btn-t-rrg', lrg: 'btn-t-lrg' };
+
+function toggleNet(net) {
+  netState[net] = !netState[net];
+  const btn = document.getElementById(netBtn[net]);
+  btn.classList.toggle('active', netState[net]);
+  Plotly.restyle('plot-pinf', { visible: netState[net] }, [netIndex[net]]);
+}
+
+// ── Escala lineal / log para χ ───────────────────────────────────
+function setChiScale(type) {
+  Plotly.relayout('plot-chi', {
+    'xaxis.type': type === 'log' ? 'log' : 'linear',
+    'yaxis.type': type === 'log' ? 'log' : 'linear',
+    'xaxis.autorange': true,
+    'yaxis.autorange': true,
+  });
+  document.getElementById('btn-chi-lin').classList.toggle('active', type === 'linear');
+  document.getElementById('btn-chi-log').classList.toggle('active', type === 'log');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('.header-nav a');
+  navLinks.forEach(a => a.classList.remove('active'));
+  document.querySelector('.header-nav a[href="simulations.html"]').classList.add('active');
+});
+</script>
+
+</body>
+</html>

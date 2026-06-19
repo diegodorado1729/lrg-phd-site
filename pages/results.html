@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resultados — LRG · Redes Complejas</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a href="../index.html" class="logo">LRG · Redes Complejas</a>
+  <nav class="header-nav">
+    <a href="../index.html">Inicio</a>
+    <a href="theory.html">Teoría</a>
+    <a href="simulations.html">Simulaciones</a>
+    <a href="results.html">Resultados</a>
+    <a href="notes.html">Notas</a>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <div class="content-area">
+
+    <h1>Log de Resultados</h1>
+    <p style="color: var(--text-muted);">
+      Registro cronológico de simulaciones completadas. Cada entrada carga su gráfica
+      directamente desde el JSON de resultados en <code>/data/</code>.
+    </p>
+
+    <!-- Filtros -->
+    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin: 1.5rem 0;">
+      <span style="font-size: 12px; color: var(--text-dim); align-self: center;">Filtrar:</span>
+      <button class="btn active" onclick="filterResults('all', this)">Todos</button>
+      <button class="btn" onclick="filterResults('percolation', this)">Percolación</button>
+      <button class="btn" onclick="filterResults('lrg', this)">LRG</button>
+      <button class="btn" onclick="filterResults('topology', this)">Topología</button>
+    </div>
+
+    <!-- Log de entradas -->
+    <div id="results-log"></div>
+
+    <div class="callout" style="margin-top: 2rem;">
+      <strong>Agregar resultados:</strong> Copiá la plantilla en
+      <code>/data/template.json</code>, completá con tu output de Julia,
+      y agregá la entrada al array <code>RESULTS_MANIFEST</code> en este archivo.
+    </div>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  Diego Dorado · LRG en Redes Complejas · FaMAF UNC · 2025
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+// ── MANIFEST ──────────────────────────────────────────────────────
+// Agregar acá cada nuevo resultado. El JSON se carga dinámicamente.
+const RESULTS_MANIFEST = [
+  {
+    id:      'er-bond-percolation-demo',
+    file:    'er_percolation_demo.json',
+    date:    '2025-06-19',
+    title:   'Percolación de bonds en red ER — baseline',
+    tags:    ['percolation'],
+    summary: 'Primera simulación de referencia. \\(P_\\infty(p)\\) y \\(\\chi(p)\\) para red ER con \\(N=10^5\\), \\(\\langle k \\rangle = 4\\). Umbral empírico consistente con Molloy–Reed: \\(p_c = 1/\\langle k \\rangle = 0.25\\).',
+    stats:   { N: '100 000', realizaciones: 500, p_c: '0.250', red: 'ER' },
+    plot:    { xKey: 'p', yKey: 'giant_component', label: 'P∞(p)', color: '#4f8ef7' }
+  },
+  // ── Plantilla para tu próxima entrada:
+  // {
+  //   id:      'ba-bond-percolation-001',
+  //   file:    'ba_percolation_001.json',
+  //   date:    '2025-XX-XX',
+  //   title:   'Percolación en red BA — comparación con ER',
+  //   tags:    ['percolation', 'topology'],
+  //   summary: 'Texto con \\(\\LaTeX\\) inline...',
+  //   stats:   { N: '...', realizaciones: 0, p_c: '...', red: 'BA' },
+  //   plot:    { xKey: 'p', yKey: 'giant_component', label: 'P∞(p)', color: '#7ecba1' }
+  // },
+];
+
+// ── Estado de filtro actual ───────────────────────────────────────
+let activeFilter = 'all';
+
+function filterResults(tag, btn) {
+  activeFilter = tag;
+  document.querySelectorAll('.filter-btn-group .btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderLog();
+}
+
+// ── Render de una entrada ─────────────────────────────────────────
+async function renderEntry(entry) {
+  const container = document.createElement('div');
+  container.className = 'result-card';
+  container.dataset.tags = entry.tags.join(' ');
+
+  const plotId = `plot-result-${entry.id}`;
+
+  container.innerHTML = `
+    <div class="result-card-header">
+      <span class="result-date">${entry.date}</span>
+      ${entry.tags.map(t => `<span class="result-tag ${t}">${t}</span>`).join('')}
+    </div>
+    <div class="result-title">${entry.title}</div>
+    <div class="result-body" style="margin: 0.5rem 0 0.75rem;">${entry.summary}</div>
+    <div class="stat-row">
+      ${Object.entries(entry.stats).map(([k,v]) =>
+        `<span class="stat-pill"><strong>${k}</strong>: ${v}</span>`
+      ).join('')}
+    </div>
+    <div style="margin-top: 1rem;">
+      <button class="btn" onclick="togglePlot('${plotId}', '${entry.file}', this, ${JSON.stringify(entry.plot).replace(/"/g, '&quot;')})">
+        <i class="ti ti-chart-line"></i> Ver gráfica
+      </button>
+    </div>
+    <div id="${plotId}" style="display:none; margin-top:1rem;">
+      <div class="plot-container" id="${plotId}-inner" style="height:260px;"></div>
+      <div class="plot-controls" style="margin-top:0.5rem;">
+        <button class="btn" onclick="resetZoom('${plotId}-inner')">
+          <i class="ti ti-refresh"></i> Reset zoom
+        </button>
+      </div>
+    </div>
+  `;
+
+  return container;
+}
+
+// ── Toggle plot inline ────────────────────────────────────────────
+const loadedPlots = new Set();
+
+async function togglePlot(plotId, file, btn, plotCfg) {
+  const wrapper = document.getElementById(plotId);
+  const isVisible = wrapper.style.display !== 'none';
+
+  if (isVisible) {
+    wrapper.style.display = 'none';
+    btn.innerHTML = '<i class="ti ti-chart-line"></i> Ver gráfica';
+    return;
+  }
+
+  wrapper.style.display = 'block';
+  btn.innerHTML = '<i class="ti ti-chart-line"></i> Ocultar';
+
+  if (loadedPlots.has(plotId)) return;
+  loadedPlots.add(plotId);
+
+  const d = await loadData(file);
+  if (!d) {
+    wrapper.innerHTML = '<p style="color:var(--text-dim); font-size:13px;">No se pudo cargar el archivo de datos.</p>';
+    return;
+  }
+
+  const layout = {
+    ...plotlyLayout,
+    margin: { l: 50, r: 20, t: 10, b: 45 },
+    xaxis: { ...plotlyLayout.xaxis, title: { text: 'p', font: { size: 11 } } },
+    yaxis: { ...plotlyLayout.yaxis, title: { text: plotCfg.label, font: { size: 11 } } },
+    legend: { ...plotlyLayout.legend, y: -0.22 },
+  };
+
+  Plotly.newPlot(`${plotId}-inner`, [{
+    x: d[plotCfg.xKey],
+    y: d[plotCfg.yKey],
+    type: 'scatter', mode: 'lines',
+    name: plotCfg.label,
+    line: { color: plotCfg.color, width: 2 },
+  }], layout, { ...plotlyConfig, displayModeBar: false });
+
+  renderMath(wrapper);
+}
+
+// ── Render completo del log ───────────────────────────────────────
+async function renderLog() {
+  const container = document.getElementById('results-log');
+  container.innerHTML = '';
+
+  const filtered = activeFilter === 'all'
+    ? RESULTS_MANIFEST
+    : RESULTS_MANIFEST.filter(e => e.tags.includes(activeFilter));
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-dim); font-size:14px;">Sin entradas para este filtro.</p>';
+    return;
+  }
+
+  for (const entry of [...filtered].reverse()) {
+    const el = await renderEntry(entry);
+    container.appendChild(el);
+  }
+
+  renderMath(container);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('.header-nav a');
+  navLinks.forEach(a => a.classList.remove('active'));
+  document.querySelector('.header-nav a[href="results.html"]').classList.add('active');
+
+  // Conectar botones de filtro al estado global
+  document.querySelectorAll('[onclick^="filterResults"]').forEach(btn => {
+    btn.classList.add('filter-btn-group');
+  });
+  document.querySelector('.page-wrapper').querySelectorAll('[onclick^="filterResults"]')
+    .forEach(b => b.closest('div').classList.add('filter-btn-group'));
+
+  renderLog();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teoría — LRG · Redes Complejas</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']],
+             tags: 'ams' },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a href="../index.html" class="logo">LRG · Redes Complejas</a>
+  <nav class="header-nav">
+    <a href="../index.html">Inicio</a>
+    <a href="theory.html">Teoría</a>
+    <a href="simulations.html">Simulaciones</a>
+    <a href="results.html">Resultados</a>
+    <a href="notes.html">Notas</a>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <div class="content-area">
+
+    <h1>Marco Teórico</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+      Fundamentos del LRG y percolación de bonds en redes complejas.
+    </p>
+
+    <!-- ─── 1. PERCOLACIÓN ─────────────────────────────────────── -->
+    <h2>1. Percolación de bonds</h2>
+
+    <p>
+      En percolación de bonds, cada arista de la red \(G=(V,E)\) se ocupa
+      independientemente con probabilidad \(p \in [0,1]\). El observable central
+      es la fracción de nodos pertenecientes al componente gigante,
+      \(P_\infty(p)\), que satisface la ecuación de punto fijo:
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(1)</span>
+      \[
+        P_\infty(p) = p \sum_k \frac{k\, p_k}{\langle k \rangle}
+        \Bigl[1 - \bigl(1 - P_\infty(p)\bigr)^{k-1}\Bigr]
+      \]
+    </div>
+
+    <p>
+      donde \(p_k\) es la distribución de grado. Esta ecuación se deriva
+      de la condición de auto-consistencia sobre el exceso de distribución de grado
+      \(q_k = (k+1)p_{k+1}/\langle k \rangle\).
+    </p>
+
+    <h3>Umbral crítico — Criterio de Molloy–Reed</h3>
+
+    <p>
+      El umbral de percolación \(p_c\) corresponde al valor donde el componente
+      gigante emerge con tamaño finito en el límite termodinámico \(N \to \infty\):
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(2)</span>
+      \[
+        p_c = \frac{\langle k \rangle}{\langle k^2 \rangle - \langle k \rangle}
+            = \frac{1}{\kappa - 1}
+      \]
+    </div>
+
+    <p>
+      con \(\kappa = \langle k^2 \rangle / \langle k \rangle\) el momento de segundo
+      orden normalizado. Para redes de Erdős–Rényi con \(\langle k \rangle = c\),
+      esto da \(p_c = 1/c\).
+    </p>
+
+    <h3>Exponentes críticos</h3>
+
+    <p>
+      En la vecindad de \(p_c\), las cantidades físicas escalan como leyes de
+      potencia. La susceptibilidad media del cluster finito diverge como:
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(3)</span>
+      \[
+        \chi(p) = \sum_{s < \infty} s^2\, n_s(p) \;\sim\; |p - p_c|^{-\gamma'}
+      \]
+    </div>
+
+    <p>
+      y el tamaño del componente gigante crece con exponente \(\beta\):
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(4)</span>
+      \[
+        P_\infty(p) \sim (p - p_c)^{\beta}, \qquad p \to p_c^+
+      \]
+    </div>
+
+    <p>
+      Para redes con \(p_k \sim k^{-\gamma}\) y \(\gamma > 4\), los exponentes
+      son los de campo medio: \(\beta = 1\), \(\gamma' = 1\). Para \(3 < \gamma \leq 4\)
+      los exponentes se vuelven no-universales.
+    </p>
+
+    <div class="callout warning">
+      <strong>Nota:</strong> Para \(\gamma \leq 3\) (redes libres de escala con hubs fuertes),
+      \(\langle k^2 \rangle \to \infty\) y por (2) se tiene \(p_c \to 0\) —
+      la red es robusta frente a fallos aleatorios.
+    </div>
+
+    <!-- ─── 2. LRG ──────────────────────────────────────────────── -->
+    <h2>2. Laplacian Renormalization Group</h2>
+
+    <p>
+      El LRG, introducido por Villegas <em>et al.</em> (2023), define un flujo
+      de renormalización en el espacio de redes a partir del operador de difusión.
+      Sea \(\mathbf{L} = \mathbf{D} - \mathbf{A}\) el Laplaciano de \(G\).
+    </p>
+
+    <h3>Kernel de difusión</h3>
+
+    <div class="eq-block">
+      <span class="eq-number">(5)</span>
+      \[
+        H_{ij}(t) = \Bigl(e^{-t\mathbf{L}}\Bigr)_{ij}
+                  = \sum_\alpha e^{-\lambda_\alpha t}\, \phi_\alpha(i)\, \phi_\alpha(j)
+      \]
+    </div>
+
+    <p>
+      donde \(\lambda_\alpha\) y \(\phi_\alpha\) son autovalores y autovectores
+      de \(\mathbf{L}\). La longitud de correlación difusiva a escala \(t\) es:
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(6)</span>
+      \[
+        \ell(t) = \left(\frac{\sum_{i,j} d_{ij}^2\, H_{ij}(t)}{\sum_{i,j} H_{ij}(t)}\right)^{1/2}
+      \]
+    </div>
+
+    <h3>Paso de renormalización</h3>
+
+    <p>
+      Dado un parámetro de escala \(\ell\), el mapa \(\mathcal{R}_\ell : G \mapsto G'\)
+      agrupa nodos cuya distancia difusiva satisface \(d^\text{diff}_{ij} \leq \ell\)
+      en super-nodos. La red renormalizada \(G'\) tiene:
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(7)</span>
+      \[
+        |V'| \approx \frac{|V|}{\ell^{d_H}}, \qquad
+        p'_c = \mathcal{F}(p_c,\, \ell,\, \{p_k\})
+      \]
+    </div>
+
+    <p>
+      donde \(d_H\) es la dimensión de Hausdorff de la red y \(\mathcal{F}\) es
+      el flujo del umbral crítico bajo renormalización. Un punto fijo
+      \(p_c^* = \mathcal{F}(p_c^*, \ell^*, \{p_k^*\})\) corresponde a una
+      universalidad crítica.
+    </p>
+
+    <div class="callout info">
+      El objetivo central de la tesis es caracterizar los puntos fijos de
+      \(\mathcal{R}_\ell\) sobre redes ER, BA (Barabási–Albert) y RRG
+      (Random Regular Graph), y comparar los exponentes críticos obtenidos
+      con los de campo medio.
+    </div>
+
+    <!-- ─── 3. OBSERVABLE ──────────────────────────────────────── -->
+    <h2>3. Observables y estimadores finitos</h2>
+
+    <p>
+      Para sistemas finitos de tamaño \(N\), se usan estimadores que minimizan
+      los efectos de tamaño finito. El Binder cumulant es:
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(8)</span>
+      \[
+        U_4(p, N) = 1 - \frac{\langle s^4 \rangle}{3\langle s^2 \rangle^2}
+      \]
+    </div>
+
+    <p>
+      donde \(s\) es el tamaño del componente gigante por realización.
+      Las curvas \(U_4(p)\) para distintos \(N\) se cortan en \(p_c\),
+      permitiendo estimación precisa del umbral sin extrapolación.
+    </p>
+
+    <div class="eq-block">
+      <span class="eq-number">(9)</span>
+      \[
+        P_\infty(p, N) \sim N^{-\beta/\nu}\, \tilde{f}\!\left((p-p_c)\,N^{1/\nu}\right)
+      \]
+    </div>
+
+    <p>
+      El colapso de datos según (9) sobre distintos \(N\) permite extraer
+      \(\beta/\nu\) y \(1/\nu\) simultáneamente por <em>data collapse</em>.
+    </p>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  Diego Dorado · LRG en Redes Complejas · FaMAF UNC · 2025
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('.header-nav a');
+  navLinks.forEach(a => a.classList.remove('active'));
+  document.querySelector('.header-nav a[href="theory.html"]').classList.add('active');
+});
+</script>
+
+</body>
+</html>

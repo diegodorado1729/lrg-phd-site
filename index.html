@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LRG en Redes Complejas — Doctorado</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a href="index.html" class="logo">LRG · Redes Complejas</a>
+  <nav class="header-nav">
+    <a href="index.html" class="active">Inicio</a>
+    <a href="pages/theory.html">Teoría</a>
+    <a href="pages/simulations.html">Simulaciones</a>
+    <a href="pages/results.html">Resultados</a>
+    <a href="pages/notes.html">Notas</a>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <div class="content-area">
+
+    <section class="hero">
+      <div class="hero-eyebrow">PhD Research · FaMAF · UNC</div>
+      <h1>Renormalization Group<br>en Redes Complejas</h1>
+      <p class="hero-subtitle">
+        Implementación y análisis del Laplacian Renormalization Group (LRG)
+        sobre distintas topologías de red. Comparación con generadores clásicos
+        y caracterización de transiciones de percolación.
+      </p>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <strong id="stat-sims">—</strong>
+          Simulaciones
+        </div>
+        <div class="hero-meta-item">
+          <strong id="stat-nets">4</strong>
+          Topologías
+        </div>
+        <div class="hero-meta-item">
+          <strong id="stat-entries">—</strong>
+          Entradas en log
+        </div>
+        <div class="hero-meta-item">
+          <strong>2025</strong>
+          Año
+        </div>
+      </div>
+    </section>
+
+    <h2>Secciones</h2>
+    <div class="section-grid">
+      <a href="pages/theory.html" class="section-card">
+        <div class="section-card-icon"><i class="ti ti-math"></i></div>
+        <div class="section-card-title">Teoría</div>
+        <div class="section-card-desc">Marco teórico del LRG, percolación de bonds, exponentes críticos, derivaciones.</div>
+      </a>
+      <a href="pages/simulations.html" class="section-card">
+        <div class="section-card-icon"><i class="ti ti-chart-line"></i></div>
+        <div class="section-card-title">Simulaciones</div>
+        <div class="section-card-desc">Gráficos interactivos de \(P_\infty(p)\), \(\chi(p)\), Binder cumulant. Zoom sobre cualquier región.</div>
+      </a>
+      <a href="pages/results.html" class="section-card">
+        <div class="section-card-icon"><i class="ti ti-database"></i></div>
+        <div class="section-card-title">Resultados</div>
+        <div class="section-card-desc">Log cronológico de avances. Cada entrada tiene metadatos, gráfica y observaciones.</div>
+      </a>
+      <a href="pages/notes.html" class="section-card">
+        <div class="section-card-icon"><i class="ti ti-notes"></i></div>
+        <div class="section-card-title">Notas</div>
+        <div class="section-card-desc">Hipótesis, dead ends, ideas para el paper, pendientes. Formato libre.</div>
+      </a>
+    </div>
+
+    <h2>Preview — \(P_\infty(p)\) en red ER</h2>
+    <div class="plot-card">
+      <div class="plot-card-header">
+        <span class="plot-card-title">Fracción del componente gigante</span>
+        <span class="plot-card-meta" id="plot-meta">Cargando...</span>
+      </div>
+      <div class="plot-container" id="plot-index"></div>
+      <div class="plot-controls">
+        <span>Toggle:</span>
+        <button class="btn active" id="btn-pinf" onclick="toggleTrace(0, 'btn-pinf')">P∞(p)</button>
+        <button class="btn" id="btn-chi"  onclick="toggleTrace(1, 'btn-chi')">χ(p)</button>
+        <button class="btn" onclick="resetZoom('plot-index')"><i class="ti ti-refresh"></i> Reset</button>
+      </div>
+    </div>
+    <p class="callout info">
+      Arrastrá un rectángulo sobre cualquier parte de la curva para hacer zoom — los ejes se reescalan automáticamente.
+      Doble click para resetear. Scroll del mouse también hace zoom.
+    </p>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  Diego Dorado · LRG en Redes Complejas · FaMAF UNC · 2025
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+(async () => {
+  const d = await loadDataRoot('er_percolation_demo.json');
+  if (!d) return;
+
+  document.getElementById('plot-meta').textContent =
+    `ER · N=${(d.N/1000).toFixed(0)}k · <k>=${d.mean_k} · ${d.realizations} realizaciones`;
+  document.getElementById('stat-sims').textContent = d.realizations;
+  document.getElementById('stat-entries').textContent = 1;
+
+  const pcLine = { type: 'line', x0: d.p_c, x1: d.p_c, y0: 0, y1: 1, yref: 'paper',
+    line: { color: 'rgba(255,255,255,0.2)', dash: 'dash', width: 1 } };
+
+  const layout = {
+    ...plotlyLayout,
+    shapes: [pcLine],
+    annotations: [{
+      x: d.p_c, y: 0.95, yref: 'paper',
+      text: `p<sub>c</sub> = ${d.p_c}`,
+      showarrow: false,
+      font: { size: 11, color: '#555d72', family: "'JetBrains Mono', monospace" },
+      xanchor: 'left', xshift: 8
+    }],
+    yaxis2: {
+      ...plotlyLayout.yaxis,
+      title: { text: 'χ(p)', font: { size: 11 } },
+      overlaying: 'y', side: 'right',
+      showgrid: false,
+    }
+  };
+
+  Plotly.newPlot('plot-index', [
+    {
+      x: d.p, y: d.giant_component,
+      type: 'scatter', mode: 'lines',
+      name: 'P∞(p)',
+      line: { color: COLORS.blue, width: 2 },
+      visible: true
+    },
+    {
+      x: d.p, y: d.susceptibility,
+      type: 'scatter', mode: 'lines',
+      name: 'χ(p)',
+      line: { color: COLORS.orange, width: 2, dash: 'dot' },
+      yaxis: 'y2',
+      visible: false
+    }
+  ], layout, plotlyConfig);
+})();
+
+function toggleTrace(idx, btnId) {
+  const btn = document.getElementById(btnId);
+  const plot = document.getElementById('plot-index');
+  const currentVis = plot.data[idx].visible;
+  const newVis = currentVis === false ? true : false;
+  Plotly.restyle('plot-index', { visible: newVis }, [idx]);
+  btn.classList.toggle('active', newVis !== false);
+}
+</script>
+
+</body>
+</html>

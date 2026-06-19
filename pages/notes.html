@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notas — LRG · Redes Complejas</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <style>
+    .note-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .note-block.hypothesis { border-left: 3px solid var(--accent); }
+    .note-block.dead-end   { border-left: 3px solid var(--accent3); }
+    .note-block.pending    { border-left: 3px solid #facc15; }
+    .note-block.paper      { border-left: 3px solid var(--accent2); }
+
+    .note-type {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .note-block.hypothesis .note-type { color: var(--accent); }
+    .note-block.dead-end   .note-type { color: var(--accent3); }
+    .note-block.pending    .note-type { color: #facc15; }
+    .note-block.paper      .note-type { color: var(--accent2); }
+
+    .note-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    .note-body {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+    .note-footer {
+      margin-top: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="../index.html" class="logo">LRG · Redes Complejas</a>
+  <nav class="header-nav">
+    <a href="../index.html">Inicio</a>
+    <a href="theory.html">Teoría</a>
+    <a href="simulations.html">Simulaciones</a>
+    <a href="results.html">Resultados</a>
+    <a href="notes.html">Notas</a>
+  </nav>
+</header>
+
+<div class="page-wrapper">
+  <div class="content-area">
+
+    <h1>Notas de Investigación</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">
+      Hipótesis, dead ends, ideas para el paper, pendientes.
+    </p>
+
+    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem;">
+      <span class="stat-pill" style="background:rgba(79,142,247,0.1); color:var(--accent);">■ Hipótesis</span>
+      <span class="stat-pill" style="background:rgba(224,123,84,0.1); color:var(--accent3);">■ Dead end</span>
+      <span class="stat-pill" style="background:rgba(250,204,21,0.1); color:#facc15;">■ Pendiente</span>
+      <span class="stat-pill" style="background:rgba(126,203,161,0.1); color:var(--accent2);">■ Paper</span>
+    </div>
+
+    <!-- Notas — agregar acá cronológicamente -->
+
+    <div class="note-block hypothesis">
+      <div class="note-type">Hipótesis</div>
+      <div class="note-title">Universalidad del LRG bajo redes con \(\gamma > 4\)</div>
+      <div class="note-body">
+        Esperamos que el flujo \(\mathcal{R}_\ell\) converja al mismo punto fijo
+        para redes ER y RRG cuando \(\langle k \rangle\) coincide, ya que ambas
+        tienen \(\langle k^2 \rangle\) finito y pertenecen a la clase de universalidad
+        de campo medio. Si los exponentes críticos post-renormalización difieren,
+        sugiere que la estructura local (ciclos cortos en RRG) rompe la universalidad.
+      </div>
+      <div class="note-footer">2025-06-19</div>
+    </div>
+
+    <div class="note-block pending">
+      <div class="note-type">Pendiente</div>
+      <div class="note-title">Implementar estimador de \(p_c\) por Binder cumulant</div>
+      <div class="note-body">
+        Necesito correr simulaciones para \(N \in \{10^3, 10^4, 10^5, 10^6\}\) y 
+        graficar \(U_4(p, N)\) vs \(p\). El cruce de las curvas para distintos \(N\)
+        da \(p_c\) sin necesidad de FSS explícito. Ver ec. (8) en Teoría.
+        Estimar tiempo: ~2h de cómputo en GPU para el \(N=10^6\).
+      </div>
+      <div class="note-footer">2025-06-19</div>
+    </div>
+
+    <div class="note-block paper">
+      <div class="note-type">Paper</div>
+      <div class="note-title">Figura central propuesta para el paper</div>
+      <div class="note-body">
+        Figura de 4 paneles: (a) \(P_\infty(p)\) para ER/BA/RRG/LRG-renorm en el 
+        mismo eje. (b) Colapso de datos FSS para ER. (c) Flujo del RG en espacio
+        de parámetros \((p, \langle k \rangle)\). (d) Exponentes \(\beta\) vs 
+        \(\gamma\) para redes scale-free. Exportar desde CairoMakie como SVG.
+      </div>
+      <div class="note-footer">2025-06-19</div>
+    </div>
+
+    <div class="note-block dead-end">
+      <div class="note-type">Dead end</div>
+      <div class="note-title">Clustering coefficient como criterio de agrupamiento en LRG</div>
+      <div class="note-body">
+        Intenté usar el clustering local \(C_i\) para definir super-nodos en lugar
+        de la distancia difusiva. El problema: \(C_i\) no es una métrica y los
+        grupos resultantes no son consistentes bajo iteraciones del RG. Abandonado.
+        La distancia espectral del kernel \(H_{ij}(t)\) es el criterio correcto.
+      </div>
+      <div class="note-footer">2025-06-19</div>
+    </div>
+
+    <div class="callout" style="margin-top: 2rem;">
+      Para agregar una nota, copiá uno de los bloques <code>.note-block</code>
+      con la clase correspondiente (<code>hypothesis</code>, <code>dead-end</code>,
+      <code>pending</code>, o <code>paper</code>) y pegalo acá con la fecha.
+    </div>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  Diego Dorado · LRG en Redes Complejas · FaMAF UNC · 2025
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const navLinks = document.querySelectorAll('.header-nav a');
+  navLinks.forEach(a => a.classList.remove('active'));
+  document.querySelector('.header-nav a[href="notes.html"]').classList.add('active');
+});
+</script>
+
+</body>
+</html>

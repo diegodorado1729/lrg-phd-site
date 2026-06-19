@@ -1,0 +1,39 @@
+{
+  "_instrucciones": [
+    "Copiá este archivo, renombralo con formato: TOPOLOGIA_observable_NNN.json",
+    "Completá todos los campos. Los campos con _ al inicio son solo documentación.",
+    "Cargalo en pages/results.html agregando una entrada a RESULTS_MANIFEST."
+  ],
+  "id":           "red-observable-001",
+  "date":         "YYYY-MM-DD",
+  "network":      "ER | BA | RRG | LRG",
+  "N":            100000,
+  "mean_k":       4,
+  "realizations": 500,
+  "p_c":          0.0,
+  "_p_c_method":  "Molloy-Reed | Binder-cumulant | FSS",
+  "observable":   ["giant_component_fraction", "susceptibility"],
+  "notes":        "Descripción libre del experimento.",
+  "tags":         ["percolation", "lrg", "topology"],
+  "_tags_validos": ["percolation", "lrg", "topology", "fss", "binder", "critical-exponents"],
+  "p":                [],
+  "giant_component":  [],
+  "susceptibility":   [],
+  "_julia_export": [
+    "using JSON3",
+    "open(\"data/mi_resultado.json\", \"w\") do f",
+    "  JSON3.write(f, Dict(",
+    "    :id => \"red-observable-001\",",
+    "    :date => string(today()),",
+    "    :network => \"ER\",",
+    "    :N => N,",
+    "    :mean_k => mean_k,",
+    "    :realizations => n_runs,",
+    "    :p_c => p_c,",
+    "    :p => p_vals,",
+    "    :giant_component => P_inf,",
+    "    :susceptibility => chi",
+    "  ))",
+    "end"
+  ]
+}
