@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentación — LRG · Redes Complejas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+
+  <style>
+    :root {
+      --bg:         #000;
+      --bg2:        #111;
+      --border:     rgba(255,255,255,0.1);
+      --shadow:     rgba(180,220,255,0.04);
+      --text:       #ffffff;
+      --muted:      #8890a4;
+      --dim:        #444c5e;
+      --h1:         #E26EE5;
+      --h2:         #A3D8FF;
+      --accent:     #4f8ef7;
+      --green:      #7ecba1;
+      --orange:     #e07b54;
+      --cyan:       #00F5FF;
+      --yellow:     #FFF024;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Urbanist', sans-serif;
+      height: 100vh; width: 100vw;
+      overflow: hidden;
+    }
+
+    /* ── BACK LINK ───────────────────────────────────────────── */
+    .back-link {
+      position: fixed;
+      top: 14px; left: 20px;
+      z-index: 200;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    .back-link:hover { opacity: 1; }
+
+    /* ── SLIDE SYSTEM ────────────────────────────────────────── */
+    #presentation { position: relative; width: 100%; height: 100%; }
+
+    .slide {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0; visibility: hidden;
+      transition: opacity 0.45s ease-in-out;
+      display: flex; justify-content: center; align-items: center;
+      z-index: 1;
+      will-change: opacity, visibility;
+    }
+
+    .slide.active { opacity: 1; visibility: visible; z-index: 2; }
+
+    .slide-content {
+      background: var(--bg);
+      width: 90%; max-width: 1300px; height: 82%;
+      border-radius: 14px;
+      padding: 52px 72px;
+      position: relative;
+      box-shadow: 0 0 60px var(--shadow);
+      border: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── LAYER SYSTEM (sub-slides) ───────────────────────────── */
+    .layer {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      padding: 52px 72px;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      opacity: 1; transform: scale(1);
+      background: var(--bg);
+      z-index: 10;
+    }
+
+    .layer.hidden {
+      opacity: 0; transform: scale(0.96);
+      z-index: 0; pointer-events: none;
+    }
+
+    /* ── TIPOGRAFÍA ──────────────────────────────────────────── */
+    .slide-eyebrow {
+      font-size: 0.85rem;
+      color: var(--h2);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    h1.slide-title {
+      font-size: 3.2rem;
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+
+    h2.slide-title {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--h1);
+      margin-bottom: 1.5rem;
+    }
+
+    h3.slide-subtitle {
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--h2);
+      margin-bottom: 1rem;
+    }
+
+    p.slide-body {
+      font-size: 1.35rem;
+      line-height: 1.7;
+      color: var(--text);
+      max-width: 820px;
+      margin-bottom: 0.75rem;
+    }
+
+    .highlight { color: var(--h1); }
+    .hl2       { color: var(--h2); }
+    .hl-green  { color: var(--green); }
+    .hl-orange { color: var(--orange); }
+
+    /* ── BULLET LIST ─────────────────────────────────────────── */
+    .slide-list {
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+
+    .slide-list li {
+      font-size: 1.3rem;
+      line-height: 1.65;
+      color: var(--text);
+      padding: 0.35rem 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .slide-list li::before {
+      content: '▸';
+      color: var(--h2);
+      font-size: 0.9rem;
+      margin-top: 0.25rem;
+      flex-shrink: 0;
+    }
+
+    /* ── ECUACIONES ──────────────────────────────────────────── */
+    .eq-block {
+      background: var(--bg2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 0.85rem 1.5rem;
+      margin: 1rem 0;
+      font-size: 1.3rem;
+      overflow-x: auto;
+      position: relative;
+      max-width: 820px;
+    }
+
+    .eq-label {
+      position: absolute;
+      right: 1rem; top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      color: var(--dim);
+      font-family: monospace;
+    }
+
+    /* ── TWO-COLUMN ──────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      width: 100%;
+      align-items: start;
+    }
+
+    .two-col-65 {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 3rem;
+      width: 100%;
+      align-items: center;
+    }
+
+    /* ── PLOT DENTRO DE SLIDE ────────────────────────────────── */
+    .slide-plot {
+      width: 100%;
+      height: 300px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .plot-btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pbtn {
+      font-size: 0.85rem;
+      font-family: 'Urbanist', sans-serif;
+      padding: 4px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pbtn:hover { background: var(--bg2); color: var(--text); }
+    .pbtn.active { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,0.1); }
+
+    /* ── CALLOUT ─────────────────────────────────────────────── */
+    .callout {
+      background: var(--bg2);
+      border-left: 3px solid var(--green);
+      border-radius: 0 8px 8px 0;
+      padding: 0.75rem 1.25rem;
+      font-size: 1.1rem;
+      color: var(--muted);
+      max-width: 820px;
+      margin-top: 1rem;
+    }
+
+    /* ── STEP TEXT ───────────────────────────────────────────── */
+    .step-text {
+      color: var(--text);
+      transition: color 0.4s, opacity 0.4s;
+    }
+    .step-text.active { color: var(--h1); }
+
+    /* ── NETWORK DIAGRAM (SVG placeholder) ───────────────────── */
+    .net-diagram {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* ── SLIDE 1 — PORTADA ───────────────────────────────────── */
+    .cover-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .cover-meta {
+      display: flex;
+      gap: 2.5rem;
+      margin-top: 2.5rem;
+      flex-wrap: wrap;
+    }
+
+    .cover-meta-item {
+      font-size: 1rem;
+      color: var(--dim);
+    }
+
+    .cover-meta-item strong {
+      display: block;
+      font-size: 1.5rem;
+      color: var(--muted);
+      font-weight: 600;
+      line-height: 1.2;
+      margin-bottom: 2px;
+    }
+
+    .cover-divider {
+      width: 60px; height: 2px;
+      background: var(--h2);
+      margin: 1.5rem 0;
+    }
+
+    /* ── SLIDE 6 — RESULTADOS ────────────────────────────────── */
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+
+    .result-tile {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+
+    .result-tile-label {
+      font-size: 0.8rem;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
+    }
+
+    .result-tile-value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--h2);
+      font-family: monospace;
+    }
+
+    .result-tile-sub {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin-top: 0.2rem;
+    }
+
+    /* ── PROGRESS BAR ────────────────────────────────────────── */
+    .progress-bar {
+      position: fixed;
+      bottom: 0; left: 0;
+      height: 3px;
+      background: var(--h2);
+      width: 0%;
+      transition: width 0.35s ease;
+      z-index: 200;
+    }
+
+    /* ── NAV BUTTONS ─────────────────────────────────────────── */
+    .nav-controls {
+      position: fixed;
+      bottom: 22px; right: 24px;
+      display: flex; gap: 8px;
+      z-index: 200;
+      opacity: 0.3;
+      transition: opacity 0.25s;
+    }
+    .nav-controls:hover { opacity: 1; }
+
+    .nav-btn {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .nav-btn:hover { background: #222; }
+
+    /* ── SLIDE COUNTER ───────────────────────────────────────── */
+    .slide-counter {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      color: var(--dim);
+      font-family: monospace;
+      z-index: 200;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── STEP DOTS ───────────────────────────────────────────── */
+    .step-dots {
+      display: flex;
+      gap: 6px;
+      margin-top: auto;
+      padding-top: 1rem;
+    }
+
+    .step-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s;
+    }
+    .step-dot.active { background: var(--h2); }
+  </style>
+</head>
+<body>
+
+<a href="../index.html" class="back-link">
+  <i class="ti ti-arrow-left"></i> Volver al sitio
+</a>
+
+<div id="presentation">
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 1 — PORTADA
+  ══════════════════════════════════════════ -->
+  <div class="slide active" id="slide-cover">
+    <div class="slide-content">
+      <div class="cover-content">
+        <div class="slide-eyebrow">Doctorado en Física · FaMAF · UNC · 2025</div>
+        <h1 class="slide-title">
+          Renormalization Group<br>
+          <span class="highlight">en Redes Complejas</span>
+        </h1>
+        <div class="cover-divider"></div>
+        <p class="slide-body" style="color: var(--muted);">
+          Implementación del Laplacian Renormalization Group (LRG) sobre distintas
+          topologías de red. Caracterización de transiciones de percolación y
+          exponentes críticos bajo el flujo de renormalización.
+        </p>
+        <div class="cover-meta">
+          <div class="cover-meta-item">
+            <strong>Diego Dorado</strong>
+            Doctorando
+          </div>
+          <div class="cover-meta-item">
+            <strong>LRG</strong>
+            Marco teórico
+          </div>
+          <div class="cover-meta-item">
+            <strong>ER · BA · RRG</strong>
+            Topologías
+          </div>
+          <div class="cover-meta-item">
+            <strong>Julia + GPU</strong>
+            Implementación
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 2 — MOTIVACIÓN
+  ══════════════════════════════════════════ -->
+  <div class="slide" id="slide-motivation">
+    <div class="slide-content">
+
+      <!-- Layer A: pregunta central -->
+      <div class="layer" id="mot-a">
+        <div class="slide-eyebrow">Motivación</div>
+        <h2 class="slide-title">¿Por qué renormalizar redes?</h2>
+        <div class="two-col">
+          <div>
+            <p class="slide-body">
+              En física estadística, el <span class="highlight">Renormalization Group</span>
+              permite entender el comportamiento universal cerca de puntos críticos
+              integrando progresivamente los grados de libertad de corta longitud de onda.
+            </p>
+            <p class="slide-body" style="margin-top:0.75rem;">
+              En redes complejas, la pregunta análoga es:
+            </p>
+            <p class="slide-body" style="color: var(--h2); font-size: 1.5rem; margin-top: 0.5rem;">
+              ¿Qué estructura topológica sobrevive al coarse-graining?
+            </p>
+            <ul class="slide-list" style="margin-top: 1rem;">
+              <li>Universalidad de exponentes críticos bajo distintas topologías</li>
+              <li>Identificación de puntos fijos del flujo RG en el espacio de redes</li>
+              <li>Conexión entre dimensión fractal \(d_H\) y clase de universalidad</li>
+            </ul>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 300 280" width="300" height="280">
+              <!-- Red original -->
+              <text x="70" y="18" font-size="11" fill="#555d72" text-anchor="middle" font-family="monospace">G</text>
+              <circle cx="70" cy="60" r="28" fill="none" stroke="#4f8ef7" stroke-width="1.5"/>
+              <circle cx="44" cy="52" r="5" fill="#4f8ef7"/>
+              <circle cx="96" cy="52" r="5" fill="#4f8ef7"/>
+              <circle cx="60" cy="80" r="5" fill="#4f8ef7"/>
+              <circle cx="80" cy="80" r="5" fill="#4f8ef7"/>
+              <circle cx="70" cy="40" r="5" fill="#4f8ef7"/>
+              <line x1="44" y1="52" x2="70" y2="40" stroke="#4f8ef7" stroke-width="1" opacity="0.5"/>
+              <line x1="96" y1="52" x2="70" y2="40" stroke="#4f8ef7" stroke-width="1" opacity="0.5"/>
+              <line x1="44" y1="52" x2="60" y2="80" stroke="#4f8ef7" stroke-width="1" opacity="0.5"/>
+              <line x1="96" y1="52" x2="80" y2="80" stroke="#4f8ef7" stroke-width="1" opacity="0.5"/>
+              <line x1="60" y1="80" x2="80" y2="80" stroke="#4f8ef7" stroke-width="1" opacity="0.5"/>
+
+              <!-- Flecha RG -->
+              <text x="150" y="55" font-size="11" fill="#7ecba1" text-anchor="middle" font-family="monospace">ℛ_ℓ</text>
+              <line x1="110" y1="62" x2="188" y2="62" stroke="#7ecba1" stroke-width="1.5"/>
+              <polygon points="188,58 196,62 188,66" fill="#7ecba1"/>
+
+              <!-- Red renormalizada -->
+              <text x="230" y="18" font-size="11" fill="#555d72" text-anchor="middle" font-family="monospace">G'</text>
+              <circle cx="230" cy="60" r="28" fill="none" stroke="#E26EE5" stroke-width="1.5"/>
+              <circle cx="215" cy="52" r="8" fill="#E26EE5" opacity="0.8"/>
+              <circle cx="245" cy="52" r="8" fill="#E26EE5" opacity="0.8"/>
+              <circle cx="230" cy="76" r="8" fill="#E26EE5" opacity="0.8"/>
+              <line x1="215" y1="52" x2="245" y2="52" stroke="#E26EE5" stroke-width="1.5" opacity="0.6"/>
+              <line x1="215" y1="52" x2="230" y2="76" stroke="#E26EE5" stroke-width="1.5" opacity="0.6"/>
+              <line x1="245" y1="52" x2="230" y2="76" stroke="#E26EE5" stroke-width="1.5" opacity="0.6"/>
+
+              <!-- Flecha segunda iteración -->
+              <text x="150" y="145" font-size="11" fill="#7ecba1" text-anchor="middle" font-family="monospace">ℛ_ℓ²</text>
+              <line x1="110" y1="152" x2="188" y2="152" stroke="#7ecba1" stroke-width="1.5" stroke-dasharray="4,3"/>
+              <polygon points="188,148 196,152 188,156" fill="#7ecba1"/>
+
+              <!-- G'' -->
+              <text x="230" y="118" font-size="11" fill="#555d72" text-anchor="middle" font-family="monospace">G''</text>
+              <circle cx="230" cy="152" r="18" fill="none" stroke="#e07b54" stroke-width="1.5"/>
+              <circle cx="220" cy="148" r="10" fill="#e07b54" opacity="0.7"/>
+              <circle cx="240" cy="156" r="10" fill="#e07b54" opacity="0.7"/>
+              <line x1="220" y1="148" x2="240" y2="156" stroke="#e07b54" stroke-width="2" opacity="0.6"/>
+
+              <!-- Punto fijo -->
+              <text x="150" y="225" font-size="11" fill="#555d72" text-anchor="middle">punto fijo</text>
+              <circle cx="150" cy="248" r="14" fill="none" stroke="#facc15" stroke-width="1.5" stroke-dasharray="3,3"/>
+              <circle cx="150" cy="248" r="6" fill="#facc15" opacity="0.8"/>
+              <line x1="230" y1="175" x2="175" y2="238" stroke="#facc15" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>
+            </svg>
+          </div>
+        </div>
+        <div class="step-dots">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+
+      <!-- Layer B: LRG específico -->
+      <div class="layer hidden" id="mot-b">
+        <div class="slide-eyebrow">Motivación</div>
+        <h2 class="slide-title">El LRG: difusión como métrica</h2>
+        <p class="slide-body">
+          El <span class="highlight">Laplacian Renormalization Group</span> (Villegas et al., 2023)
+          define la distancia entre nodos usando el <span class="hl2">kernel de difusión</span>
+          del Laplaciano de la red, en lugar de distancias topológicas.
+        </p>
+        <div class="eq-block">
+          \[ H_{ij}(t) = \left(e^{-t\mathbf{L}}\right)_{ij} = \sum_\alpha e^{-\lambda_\alpha t}\,\phi_\alpha(i)\,\phi_\alpha(j) \]
+        </div>
+        <p class="slide-body">
+          A tiempo \(t\), dos nodos son <span class="hl-green">"cercanos"</span> si la difusión
+          entre ellos es alta. El parámetro \(t\) controla la <em>escala de observación</em>
+          — análogo al cutoff en RG de campo.
+        </p>
+        <div class="callout">
+          Ventaja sobre RG topológico: la métrica difusiva respeta la
+          heterogeneidad de la red y es sensible a la estructura de comunidades.
+        </div>
+        <div class="step-dots">
+          <div class="step-dot"></div>
+          <div class="step-dot active"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 3 — PERCOLACIÓN
+  ══════════════════════════════════════════ -->
+  <div class="slide" id="slide-percolation">
+    <div class="slide-content">
+
+      <!-- Layer A: definición -->
+      <div class="layer" id="perc-a">
+        <div class="slide-eyebrow">Percolación de bonds</div>
+        <h2 class="slide-title">Transición de fase en redes</h2>
+        <div class="two-col-65">
+          <div>
+            <p class="slide-body">
+              Cada arista se ocupa con probabilidad \(p\). La fracción del
+              <span class="highlight">componente gigante</span> \(P_\infty(p)\)
+              satisface la ecuación de punto fijo:
+            </p>
+            <div class="eq-block">
+              <span class="eq-label">(1)</span>
+              \[ P_\infty = p \sum_k \frac{k\,p_k}{\langle k\rangle}
+              \left[1-(1-P_\infty)^{k-1}\right] \]
+            </div>
+            <p class="slide-body">
+              El umbral crítico (criterio de <span class="hl2">Molloy–Reed</span>):
+            </p>
+            <div class="eq-block">
+              <span class="eq-label">(2)</span>
+              \[ p_c = \frac{\langle k\rangle}{\langle k^2\rangle - \langle k\rangle} \]
+            </div>
+          </div>
+          <div>
+            <div class="slide-plot" id="plot-perc"></div>
+            <div class="plot-btn-row">
+              <button class="pbtn active" id="pbtn-pinf" onclick="togglePercTrace(0,'pbtn-pinf')">P∞(p)</button>
+              <button class="pbtn" id="pbtn-chi" onclick="togglePercTrace(1,'pbtn-chi')">χ(p)</button>
+              <button class="pbtn" onclick="Plotly.relayout('plot-perc',{'xaxis.autorange':true,'yaxis.autorange':true,'yaxis2.autorange':true})">
+                <i class="ti ti-refresh" style="font-size:13px;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="step-dots">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+
+      <!-- Layer B: exponentes -->
+      <div class="layer hidden" id="perc-b">
+        <div class="slide-eyebrow">Percolación de bonds</div>
+        <h2 class="slide-title">Exponentes críticos</h2>
+        <p class="slide-body">
+          Cerca de \(p_c\), las cantidades físicas escalan como leyes de potencia:
+        </p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; width:100%; margin-top:0.5rem;">
+          <div>
+            <h3 class="slide-subtitle">Componente gigante</h3>
+            <div class="eq-block">
+              \[ P_\infty \sim (p-p_c)^\beta \]
+            </div>
+            <p class="slide-body" style="font-size:1.1rem; color:var(--muted);">
+              Campo medio: \(\beta = 1\) para \(\gamma > 4\)
+            </p>
+          </div>
+          <div>
+            <h3 class="slide-subtitle">Susceptibilidad</h3>
+            <div class="eq-block">
+              \[ \chi \sim |p-p_c|^{-\gamma'} \]
+            </div>
+            <p class="slide-body" style="font-size:1.1rem; color:var(--muted);">
+              Campo medio: \(\gamma' = 1\) para \(\gamma > 4\)
+            </p>
+          </div>
+          <div>
+            <h3 class="slide-subtitle">Tamaño de clusters finitos</h3>
+            <div class="eq-block">
+              \[ \langle s \rangle \sim |p-p_c|^{-\sigma} \]
+            </div>
+          </div>
+          <div>
+            <h3 class="slide-subtitle">Binder cumulant (FSS)</h3>
+            <div class="eq-block">
+              \[ U_4(p,N) = 1 - \frac{\langle s^4\rangle}{3\langle s^2\rangle^2} \]
+            </div>
+          </div>
+        </div>
+        <div class="step-dots">
+          <div class="step-dot"></div>
+          <div class="step-dot active"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 4 — LAPLACIANO
+  ══════════════════════════════════════════ -->
+  <div class="slide" id="slide-laplacian">
+    <div class="slide-content">
+      <div class="layer" id="lap-a">
+        <div class="slide-eyebrow">Operador de difusión</div>
+        <h2 class="slide-title">El Laplaciano de red</h2>
+        <div class="two-col">
+          <div>
+            <p class="slide-body">
+              El <span class="highlight">Laplaciano</span> de \(G=(V,E)\) es:
+            </p>
+            <div class="eq-block">
+              \[ \mathbf{L} = \mathbf{D} - \mathbf{A} \]
+            </div>
+            <p class="slide-body">
+              con \(\mathbf{D}_{ii} = k_i\) la matriz de grados y \(\mathbf{A}\)
+              la matriz de adyacencia. Sus autovalores \(0 = \lambda_1 \leq \lambda_2 \leq \cdots\)
+              contienen la estructura topológica de la red.
+            </p>
+            <h3 class="slide-subtitle" style="margin-top:1.25rem;">Ecuación de difusión</h3>
+            <div class="eq-block">
+              \[ \frac{d\mathbf{u}}{dt} = -\mathbf{L}\,\mathbf{u}(t)
+              \implies \mathbf{u}(t) = e^{-t\mathbf{L}}\,\mathbf{u}(0) \]
+            </div>
+            <p class="slide-body" style="font-size:1.1rem; color:var(--muted);">
+              El <span class="hl2">gap espectral</span> \(\lambda_2\) controla
+              la velocidad de mezcla — redes con \(\lambda_2 \approx 0\)
+              tienen comunidades bien definidas.
+            </p>
+          </div>
+          <div>
+            <h3 class="slide-subtitle">Longitud de correlación difusiva</h3>
+            <div class="eq-block">
+              \[ \ell(t) = \left(\frac{\displaystyle\sum_{ij} d_{ij}^2\,H_{ij}(t)}
+              {\displaystyle\sum_{ij} H_{ij}(t)}\right)^{1/2} \]
+            </div>
+            <div class="callout" style="margin-top:1rem;">
+              \(\ell(t)\) crece monotónamente con \(t\) y define la
+              <strong style="color:var(--h2)">escala de coarse-graining</strong>
+              del LRG. Controlar \(t\) es equivalente a mover el cutoff del RG.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 5 — PASO DE RENORMALIZACIÓN
+  ══════════════════════════════════════════ -->
+  <div class="slide" id="slide-rg-step">
+    <div class="slide-content">
+
+      <!-- Layer A: mapa -->
+      <div class="layer" id="rg-a">
+        <div class="slide-eyebrow">Laplacian Renormalization Group</div>
+        <h2 class="slide-title">El mapa \(\mathcal{R}_\ell\)</h2>
+        <p class="slide-body">
+          Dado un parámetro de escala \(\ell\), el paso de renormalización
+          agrupa nodos con distancia difusiva \(d^\text{diff}_{ij} \leq \ell\)
+          en <span class="highlight">super-nodos</span>:
+        </p>
+        <div class="eq-block" style="margin-top:0.75rem;">
+          \[ \mathcal{R}_\ell : G \mapsto G' \qquad |V'| \approx \frac{|V|}{\ell^{d_H}} \]
+        </div>
+        <ul class="slide-list" style="margin-top:1rem;">
+          <li><span class="step-text" id="rg-step1">Los pesos de aristas de \(G'\) se construyen sumando las conexiones entre super-nodos.</span></li>
+          <li><span class="step-text" id="rg-step2">El umbral crítico transforma según \(p'_c = \mathcal{F}(p_c,\,\ell,\,\{p_k\})\).</span></li>
+          <li><span class="step-text" id="rg-step3">Un punto fijo \(p_c^* = \mathcal{F}(p_c^*,\,\ell^*,\,\{p_k^*\})\) define una clase de universalidad.</span></li>
+        </ul>
+        <div class="step-dots" style="margin-top:auto;">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+        </div>
+      </div>
+
+      <!-- Layer B: flujo RG -->
+      <div class="layer hidden" id="rg-b">
+        <div class="slide-eyebrow">Laplacian Renormalization Group</div>
+        <h2 class="slide-title">Flujo del RG y topologías</h2>
+        <div class="two-col">
+          <div>
+            <p class="slide-body">
+              Distintas topologías producen flujos diferentes en el espacio
+              de parámetros \((p_c, \langle k\rangle)\):
+            </p>
+            <ul class="slide-list" style="margin-top:0.75rem;">
+              <li><span class="hl2">ER</span> — fluye hacia el punto fijo de campo medio. \(\beta=1\), \(\gamma'=1\).</li>
+              <li><span class="hl-green">RRG</span> — mismo punto fijo que ER para igual \(\langle k\rangle\). <em>Hipótesis a verificar.</em></li>
+              <li><span class="hl-orange">BA (\(\gamma=3\))</span> — \(p_c\to 0\), régimen no-perturbativo.</li>
+              <li><span class="highlight">LRG-renorm</span> — \(G'\) generado iterando \(\mathcal{R}_\ell\) sobre ER.</li>
+            </ul>
+            <div class="callout" style="margin-top:1.25rem;">
+              <strong>Objetivo central:</strong> determinar si el flujo del LRG
+              preserva la clase de universalidad de la red original o genera
+              una nueva bajo iteraciones.
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:center;">
+            <svg viewBox="0 0 260 230" width="260" height="230">
+              <!-- Ejes -->
+              <line x1="30" y1="200" x2="240" y2="200" stroke="#333" stroke-width="1.5"/>
+              <line x1="30" y1="200" x2="30" y2="20"   stroke="#333" stroke-width="1.5"/>
+              <text x="245" y="204" font-size="10" fill="#555d72" font-family="monospace">p_c</text>
+              <text x="22"  y="16"  font-size="10" fill="#555d72" font-family="monospace">⟨k⟩</text>
+
+              <!-- Trayectoria ER -->
+              <path d="M200,50 Q160,90 110,140 Q80,160 60,175" fill="none" stroke="#4f8ef7" stroke-width="2" stroke-dasharray="none"/>
+              <polygon points="60,170 55,180 65,178" fill="#4f8ef7"/>
+              <text x="210" y="46" font-size="10" fill="#4f8ef7" font-family="monospace">ER</text>
+
+              <!-- Trayectoria BA -->
+              <path d="M220,80 Q190,120 150,160 Q120,180 85,192" fill="none" stroke="#e07b54" stroke-width="2"/>
+              <polygon points="82,188 80,197 88,194" fill="#e07b54"/>
+              <text x="222" y="78" font-size="10" fill="#e07b54" font-family="monospace">BA</text>
+
+              <!-- Punto fijo ER -->
+              <circle cx="60" cy="175" r="7" fill="none" stroke="#4f8ef7" stroke-width="1.5"/>
+              <circle cx="60" cy="175" r="3" fill="#4f8ef7"/>
+              <text x="66" y="172" font-size="9" fill="#555d72" font-family="monospace">p*_c(ER)</text>
+
+              <!-- Punto fijo BA (p_c→0) -->
+              <circle cx="30" cy="192" r="5" fill="none" stroke="#e07b54" stroke-width="1.5" stroke-dasharray="2,2"/>
+              <text x="33" y="190" font-size="9" fill="#555d72" font-family="monospace">p*_c→0</text>
+            </svg>
+          </div>
+        </div>
+        <div class="step-dots">
+          <div class="step-dot"></div>
+          <div class="step-dot active"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE 6 — RESULTADOS PRELIMINARES
+  ══════════════════════════════════════════ -->
+  <div class="slide" id="slide-results">
+    <div class="slide-content">
+      <div class="layer" id="res-a">
+        <div class="slide-eyebrow">Resultados preliminares</div>
+        <h2 class="slide-title">Estado actual</h2>
+        <p class="slide-body" style="color:var(--muted);">
+          Simulaciones de baseline completadas en red ER. Próximas etapas: BA, RRG, y LRG-renorm.
+        </p>
+        <div class="result-grid">
+          <div class="result-tile">
+            <div class="result-tile-label">Red</div>
+            <div class="result-tile-value">ER</div>
+            <div class="result-tile-sub">Erdős–Rényi, \(\langle k\rangle=4\)</div>
+          </div>
+          <div class="result-tile">
+            <div class="result-tile-label">Tamaño</div>
+            <div class="result-tile-value">10⁵</div>
+            <div class="result-tile-sub">nodos, 500 realizaciones</div>
+          </div>
+          <div class="result-tile">
+            <div class="result-tile-label">p_c empírico</div>
+            <div class="result-tile-value">0.250</div>
+            <div class="result-tile-sub">Consistente con Molloy–Reed</div>
+          </div>
+          <div class="result-tile">
+            <div class="result-tile-label">Próximo paso</div>
+            <div class="result-tile-value" style="font-size:1.1rem; color:var(--muted);">Binder cumulant</div>
+            <div class="result-tile-sub">FSS para extraer \(\beta/\nu\)</div>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:1.25rem; border-color:var(--accent);">
+          Todos los resultados actualizados en tiempo real en
+          <strong style="color:var(--accent)">Resultados →</strong>
+          a medida que se completan las simulaciones.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /presentation -->
+
+<!-- Progress bar y controles -->
+<div class="progress-bar" id="progress-bar"></div>
+<div class="slide-counter" id="slide-counter">1 / 6</div>
+<div class="nav-controls">
+  <button class="nav-btn" onclick="navigate(-1)"><i class="ti ti-arrow-left"></i></button>
+  <button class="nav-btn" onclick="navigate(1)"><i class="ti ti-arrow-right"></i></button>
+</div>
+
+<script>
+// ── CONFIG SLIDES ─────────────────────────────────────────────────
+const SLIDES = [
+  { id: 'slide-cover',       layers: [] },
+  { id: 'slide-motivation',  layers: ['mot-a','mot-b'] },
+  { id: 'slide-percolation', layers: ['perc-a','perc-b'] },
+  { id: 'slide-laplacian',   layers: ['lap-a'] },
+  { id: 'slide-rg-step',     layers: ['rg-a','rg-b'] },
+  { id: 'slide-results',     layers: ['res-a'] },
+];
+
+let currentSlide = 0;
+let currentLayer = 0;  // layer dentro del slide actual
+
+// ── NAVEGACIÓN ────────────────────────────────────────────────────
+function navigate(dir) {
+  const slide = SLIDES[currentSlide];
+  const maxLayer = slide.layers.length - 1;
+
+  if (dir === 1 && maxLayer > 0 && currentLayer < maxLayer) {
+    // Avanzar layer dentro del slide
+    setLayer(currentSlide, currentLayer + 1);
+    return;
+  }
+
+  if (dir === -1 && currentLayer > 0) {
+    // Retroceder layer dentro del slide
+    setLayer(currentSlide, currentLayer - 1);
+    return;
+  }
+
+  // Cambiar slide
+  const nextSlide = currentSlide + dir;
+  if (nextSlide < 0 || nextSlide >= SLIDES.length) return;
+
+  document.getElementById(SLIDES[currentSlide].id).classList.remove('active');
+  currentSlide = nextSlide;
+  currentLayer = dir === 1 ? 0 : Math.max(0, SLIDES[currentSlide].layers.length - 1);
+  document.getElementById(SLIDES[currentSlide].id).classList.add('active');
+
+  if (SLIDES[currentSlide].layers.length > 0) {
+    setLayer(currentSlide, currentLayer);
+  }
+
+  updateUI();
+  onSlideEnter(currentSlide);
+}
+
+function setLayer(slideIdx, layerIdx) {
+  const slide = SLIDES[slideIdx];
+  currentLayer = layerIdx;
+  slide.layers.forEach((id, i) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle('hidden', i !== layerIdx);
+  });
+  updateUI();
+}
+
+function updateUI() {
+  const total = SLIDES.length;
+  document.getElementById('slide-counter').textContent =
+    `${currentSlide + 1} / ${total}`;
+  document.getElementById('progress-bar').style.width =
+    `${((currentSlide) / (total - 1)) * 100}%`;
+}
+
+// ── HOOKS POR SLIDE ───────────────────────────────────────────────
+function onSlideEnter(idx) {
+  if (idx === 2 && !window._percPlotDone) initPercPlot();
+}
+
+// ── TECLADO ───────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+    e.preventDefault(); navigate(1);
+  }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+    e.preventDefault(); navigate(-1);
+  }
+});
+
+// ── PLOT PERCOLACIÓN ──────────────────────────────────────────────
+async function initPercPlot() {
+  window._percPlotDone = true;
+
+  // Cargar datos reales si existen, sino usar sintéticos
+  let d = null;
+  try {
+    const res = await fetch('../data/er_percolation_demo.json');
+    if (res.ok) d = await res.json();
+  } catch(e) {}
+
+  if (!d) {
+    // Datos sintéticos de fallback
+    const p = Array.from({length:101}, (_,i) => +(i*0.005).toFixed(3));
+    const pc = 0.25;
+    d = {
+      p,
+      giant_component: p.map(pi => pi <= pc ? 0 : +Math.pow((pi-pc)/(1-pc), 1).toFixed(4)),
+      susceptibility:  p.map(pi => +(1/Math.abs(pi-pc+0.008)).toFixed(2)),
+      p_c: pc
+    };
+  }
+
+  const base = {
+    paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+    font: { family: 'Urbanist, sans-serif', color: '#8890a4', size: 11 },
+    margin: { l:50, r:45, t:10, b:45 },
+    dragmode: 'zoom',
+    xaxis: {
+      title: { text:'p', font:{size:12} },
+      gridcolor:'rgba(255,255,255,0.05)',
+      zerolinecolor:'rgba(255,255,255,0.1)',
+      autorange:true
+    },
+    yaxis: {
+      title: { text:'P∞(p)', font:{size:12} },
+      gridcolor:'rgba(255,255,255,0.05)',
+      zerolinecolor:'rgba(255,255,255,0.1)',
+      autorange:true
+    },
+    yaxis2: {
+      title: { text:'χ(p)', font:{size:12, color:'#e07b54'} },
+      overlaying:'y', side:'right', showgrid:false, autorange:true
+    },
+    shapes:[{
+      type:'line', x0:d.p_c, x1:d.p_c, y0:0, y1:1, yref:'paper',
+      line:{color:'rgba(255,255,255,0.15)', dash:'dash', width:1}
+    }],
+    legend:{ orientation:'h', y:-0.22, font:{size:11}, bgcolor:'rgba(0,0,0,0)' },
+    hoverlabel:{ bgcolor:'#1a1e28', bordercolor:'rgba(255,255,255,0.1)', font:{size:11} }
+  };
+
+  Plotly.newPlot('plot-perc', [
+    { x:d.p, y:d.giant_component, type:'scatter', mode:'lines',
+      name:'P∞(p)', line:{color:'#4f8ef7', width:2} },
+    { x:d.p, y:d.susceptibility, type:'scatter', mode:'lines',
+      name:'χ(p)', yaxis:'y2', visible:false,
+      line:{color:'#e07b54', width:2, dash:'dot'} }
+  ], base, {
+    scrollZoom:true, doubleClick:'reset', responsive:true,
+    displayModeBar:false
+  });
+}
+
+function togglePercTrace(idx, btnId) {
+  const plot = document.getElementById('plot-perc');
+  const vis = plot.data[idx].visible === false ? true : false;
+  Plotly.restyle('plot-perc', {visible: vis}, [idx]);
+  document.getElementById(btnId).classList.toggle('active', vis !== false);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+updateUI();
+</script>
+
+</body>
+</html>
