@@ -101,6 +101,30 @@
       </div>
     </div>
 
+    <h2>Autosimilitud tras percolación — BA \(N=4096\), \(m=2\)</h2>
+    <div class="plot-card">
+      <div class="plot-card-header">
+        <span class="plot-card-title">
+          Complemento de entropía \(1-s\) y calor específico \(C\log N\)
+        </span>
+        <span class="plot-card-meta" id="meta-autosim">Cargando...</span>
+      </div>
+      <div class="plot-container" id="plot-autosim" style="height:380px;"></div>
+      <div class="plot-controls">
+        <button class="btn active" id="btn-entropy" onclick="toggleAutosim(0,'btn-entropy')">1−s (entropía)</button>
+        <button class="btn active" id="btn-cv"      onclick="toggleAutosim(1,'btn-cv')">C log N (calor específico)</button>
+        <button class="btn" onclick="resetZoom('plot-autosim',['yaxis2'])">
+          <i class="ti ti-refresh"></i> Reset zoom
+        </button>
+      </div>
+    </div>
+
+    <p class="callout">
+      La línea vertical punteada marca \(f_c\). El plateau en \(1-s\) indica que
+      la componente gigante extraída en \(f_c\) se vuelve autosimilar bajo el
+      flujo de difusión — estructura ausente en la red original.
+    </p>
+
   </div>
 </div>
 
@@ -208,6 +232,67 @@ document.addEventListener('DOMContentLoaded', () => {
   navLinks.forEach(a => a.classList.remove('active'));
   document.querySelector('.header-nav a[href="simulations.html"]').classList.add('active');
 });
+</script>
+
+<script>
+(async () => {
+  const d = await loadData('autosimilitud_BA_N4096_m2.json');
+  if (!d) return;
+
+  document.getElementById('meta-autosim').textContent =
+    `BA · N=${d.N} · m=${d.m} · f_c=${d.f_c.toFixed(4)}`;
+
+  const layout = {
+    ...plotlyLayout,
+    shapes: [{
+      type: 'line', x0: d.f_c, x1: d.f_c, y0: 0, y1: 1, yref: 'paper',
+      line: { color: 'rgba(255,255,255,0.2)', dash: 'dash', width: 1 }
+    }],
+    xaxis: {
+      ...plotlyLayout.xaxis,
+      type: 'log',
+      title: { text: 'τ', font: { size: 13 } },
+      range: [-2, 4],
+    },
+    yaxis: {
+      ...plotlyLayout.yaxis,
+      title: { text: '1 − s', font: { size: 13 } },
+      range: [0, 1.05],
+    },
+    yaxis2: {
+      ...plotlyLayout.yaxis,
+      title: { text: 'C log N', font: { size: 13, color: '#e07b54' } },
+      overlaying: 'y', side: 'right',
+      type: 'log',
+      range: [Math.log10(0.08), Math.log10(10)],
+      showgrid: false,
+    },
+  };
+
+  Plotly.newPlot('plot-autosim', [
+    {
+      x: d.t_values, y: d.avg_entropy,
+      type: 'scatter', mode: 'lines',
+      name: '1 − s',
+      line: { color: '#4f8ef7', width: 2, dash: 'dash' },
+    },
+    {
+      x: d.t_values, y: d.avg_cv,
+      type: 'scatter', mode: 'lines',
+      name: 'C log N',
+      yaxis: 'y2',
+      line: { color: '#e07b54', width: 2 },
+    }
+  ], layout, plotlyConfig);
+})();
+
+function toggleAutosim(idx, btnId) {
+  const btn = document.getElementById(btnId);
+  const plot = document.getElementById('plot-autosim');
+  const vis = plot.data[idx].visible === false ? true : false;
+  Plotly.restyle('plot-autosim', { visible: vis }, [idx]);
+  btn.classList.toggle('active', vis !== false);
+}
 </script>
 
 </body>
