@@ -353,6 +353,9 @@ function applyRanges() {
   const y2min = parseFloat(document.getElementById('y2min').value);
   const y2max = parseFloat(document.getElementById('y2max').value);
 
+  const ranges = { xmin, xmax, ymin, ymax, y2min, y2max };
+  localStorage.setItem('autosim_ranges', JSON.stringify(ranges));
+
   Plotly.relayout('plot-autosim', {
     'xaxis.range':  [Math.log10(xmin), Math.log10(xmax)],
     'yaxis.range':  [ymin, ymax],
