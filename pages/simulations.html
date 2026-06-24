@@ -121,8 +121,7 @@
         </button>
       </div>
 
-      <div id="range-panel" style="display:none; margin-top:0.75rem; background:var(--bg3);
-          border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem 1rem; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+      <div id="range-panel" style="display:none; margin-top:0.75rem; background:var(--bg3); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem 1rem; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
         <div>
           <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">τ min</div>
           <input id="xmin" type="number" value="0.01" step="any"
@@ -290,6 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const layout = {
     ...plotlyLayout,
+    margin: { l: 55, r: 70, t: 20, b: 50 },
     shapes: [{
       type: 'line', x0: d.f_c, x1: d.f_c, y0: 0, y1: 1, yref: 'paper',
       line: { color: 'rgba(255,255,255,0.2)', dash: 'dash', width: 1 }
@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     yaxis2: {
       ...plotlyLayout.yaxis,
-      title: { text: 'C log N', font: { size: 13, color: '#e07b54' }, standoff: 18 },
+      title: { text: 'C log N', font: { size: 13, color: '#e07b54' }, standoff: 35 },
       overlaying: 'y', side: 'right',
       type: 'log',
       range: [Math.log10(0.08), Math.log10(10)],
