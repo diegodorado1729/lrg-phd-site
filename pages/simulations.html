@@ -113,8 +113,54 @@
       <div class="plot-controls">
         <button class="btn active" id="btn-entropy" onclick="toggleAutosim(0,'btn-entropy')">1−s (entropía)</button>
         <button class="btn active" id="btn-cv"      onclick="toggleAutosim(1,'btn-cv')">C log N (calor específico)</button>
+        <button class="btn" id="btn-range-toggle" onclick="toggleRangePanel()">
+          <i class="ti ti-adjustments"></i> Rangos
+        </button>
         <button class="btn" onclick="resetZoom('plot-autosim',['yaxis2'])">
           <i class="ti ti-refresh"></i> Reset zoom
+        </button>
+      </div>
+
+      <div id="range-panel" style="display:none; margin-top:0.75rem; background:var(--bg3);
+          border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem 1rem; gap:1rem; flex-wrap:wrap; align-items:flex-end;">
+        <div>
+          <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">τ min</div>
+          <input id="xmin" type="number" value="0.01" step="any"
+            style="width:90px; background:var(--bg); border:1px solid var(--border-mid);
+                  color:var(--text); border-radius:4px; padding:4px 8px; font-size:13px;">
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">τ max</div>
+          <input id="xmax" type="number" value="10000" step="any"
+            style="width:90px; background:var(--bg); border:1px solid var(--border-mid);
+                  color:var(--text); border-radius:4px; padding:4px 8px; font-size:13px;">
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">1−s min</div>
+          <input id="ymin" type="number" value="0" step="any"
+            style="width:90px; background:var(--bg); border:1px solid var(--border-mid);
+                  color:var(--text); border-radius:4px; padding:4px 8px; font-size:13px;">
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">1−s max</div>
+          <input id="ymax" type="number" value="1.05" step="any"
+            style="width:90px; background:var(--bg); border:1px solid var(--border-mid);
+                  color:var(--text); border-radius:4px; padding:4px 8px; font-size:13px;">
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">C log N min</div>
+          <input id="y2min" type="number" value="0.08" step="any"
+            style="width:90px; background:var(--bg); border:1px solid var(--border-mid);
+                  color:var(--text); border-radius:4px; padding:4px 8px; font-size:13px;">
+        </div>
+        <div>
+          <div style="font-size:11px; color:var(--text-dim); margin-bottom:4px;">C log N max</div>
+          <input id="y2max" type="number" value="10" step="any"
+            style="width:90px; background:var(--bg); border:1px solid var(--border-mid);
+                  color:var(--text); border-radius:4px; padding:4px 8px; font-size:13px;">
+        </div>
+        <button class="btn active" onclick="applyRanges()" style="align-self:flex-end;">
+          Aplicar
         </button>
       </div>
     </div>
@@ -261,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     yaxis2: {
       ...plotlyLayout.yaxis,
-      title: { text: 'C log N', font: { size: 13, color: '#e07b54' } },
+      title: { text: 'C log N', font: { size: 13, color: '#e07b54' }, standoff: 18 },
       overlaying: 'y', side: 'right',
       type: 'log',
       range: [Math.log10(0.08), Math.log10(10)],
