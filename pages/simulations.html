@@ -339,6 +339,26 @@ function toggleAutosim(idx, btnId) {
   Plotly.restyle('plot-autosim', { visible: vis }, [idx]);
   btn.classList.toggle('active', vis !== false);
 }
+
+function toggleRangePanel() {
+  const panel = document.getElementById('range-panel');
+  panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+}
+
+function applyRanges() {
+  const xmin  = parseFloat(document.getElementById('xmin').value);
+  const xmax  = parseFloat(document.getElementById('xmax').value);
+  const ymin  = parseFloat(document.getElementById('ymin').value);
+  const ymax  = parseFloat(document.getElementById('ymax').value);
+  const y2min = parseFloat(document.getElementById('y2min').value);
+  const y2max = parseFloat(document.getElementById('y2max').value);
+
+  Plotly.relayout('plot-autosim', {
+    'xaxis.range':  [Math.log10(xmin), Math.log10(xmax)],
+    'yaxis.range':  [ymin, ymax],
+    'yaxis2.range': [Math.log10(y2min), Math.log10(y2max)],
+  });
+}
 </script>
 
 </body>
