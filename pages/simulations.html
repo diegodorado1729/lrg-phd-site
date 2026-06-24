@@ -161,6 +161,9 @@
         <button class="btn active" onclick="applyRanges()" style="align-self:flex-end;">
           Aplicar
         </button>
+        <button class="btn" onclick="localStorage.removeItem('autosim_ranges'); location.reload();" style="align-self:flex-end;">
+          Reset defaults
+        </button>
       </div>
     </div>
 
@@ -287,6 +290,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('meta-autosim').textContent =
     `BA · N=${d.N} · m=${d.m} · f_c=${d.f_c.toFixed(4)}`;
 
+  const savedRanges = JSON.parse(localStorage.getItem('autosim_ranges') || 'null');
+  const r = savedRanges || { xmin:0.01, xmax:10000, ymin:0, ymax:1.05, y2min:0.08, y2max:10 };
+  
+  document.getElementById('xmin').value  = r.xmin;
+  document.getElementById('xmax').value  = r.xmax;
+  document.getElementById('ymin').value  = r.ymin;
+  document.getElementById('ymax').value  = r.ymax;
+  document.getElementById('y2min').value = r.y2min;
+  document.getElementById('y2max').value = r.y2max;
+
   const layout = {
     ...plotlyLayout,
     margin: { l: 55, r: 70, t: 20, b: 50 },
@@ -298,19 +311,19 @@ document.addEventListener('DOMContentLoaded', () => {
       ...plotlyLayout.xaxis,
       type: 'log',
       title: { text: 'τ', font: { size: 13 } },
-      range: [-2, 4],
+      range: [Math.log10(r.xmin), Math.log10(r.xmax)],
     },
     yaxis: {
       ...plotlyLayout.yaxis,
       title: { text: '1 − s', font: { size: 13 } },
-      range: [0, 1.05],
+      range: [r.ymin, r.ymax],
     },
     yaxis2: {
       ...plotlyLayout.yaxis,
       title: { text: 'C log N', font: { size: 13, color: '#e07b54' }, standoff: 35 },
       overlaying: 'y', side: 'right',
       type: 'log',
-      range: [Math.log10(0.08), Math.log10(10)],
+      range: [Math.log10(r.y2min), Math.log10(r.y2max)],
       showgrid: false,
     },
   };
