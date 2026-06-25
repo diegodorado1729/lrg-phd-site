@@ -291,6 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `BA · N=${d.N} · m=${d.m} · f_c=${d.f_c.toFixed(4)}`;
 
   const savedRanges = JSON.parse(localStorage.getItem('autosim_ranges') || 'null');
+  console.log('Rangos guardados:', savedRanges);
   const r = savedRanges || { xmin:0.01, xmax:10000, ymin:0, ymax:1.05, y2min:0.08, y2max:10 };
   
   document.getElementById('xmin').value  = r.xmin;
