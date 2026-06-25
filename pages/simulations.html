@@ -268,8 +268,8 @@ function setChiScale(type) {
   Plotly.relayout('plot-chi', {
     'xaxis.type': type === 'log' ? 'log' : 'linear',
     'yaxis.type': type === 'log' ? 'log' : 'linear',
-    'xaxis.autorange': true,
-    'yaxis.autorange': true,
+    'xaxis.autorange': false,
+    'yaxis.autorange': false,
   });
   document.getElementById('btn-chi-lin').classList.toggle('active', type === 'linear');
   document.getElementById('btn-chi-log').classList.toggle('active', type === 'log');
