@@ -313,16 +313,19 @@ document.addEventListener('DOMContentLoaded', () => {
     xaxis: {
       ...plotlyLayout.xaxis,
       type: 'log',
+      autorange: false,
       title: { text: 'τ', font: { size: 13 } },
       range: [Math.log10(r.xmin), Math.log10(r.xmax)],
     },
     yaxis: {
       ...plotlyLayout.yaxis,
+      autorange: false,
       title: { text: '1 − s', font: { size: 13 } },
       range: [r.ymin, r.ymax],
     },
     yaxis2: {
       ...plotlyLayout.yaxis,
+      autorange: false,
       title: { text: 'C log N', font: { size: 13, color: '#e07b54' }, standoff: 35 },
       overlaying: 'y', side: 'right',
       type: 'log',
