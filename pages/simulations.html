@@ -284,7 +284,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <script>
 (async () => {
+  console.log('Iniciando carga de datos...');
   const d = await loadData('autosimilitud_BA_N4096_m2.json');
+  console.log('Datos cargados:', d);
   if (!d) return;
 
   document.getElementById('meta-autosim').textContent =
