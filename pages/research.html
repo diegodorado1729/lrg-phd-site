@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Investigación — LRG · Redes Complejas</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['\\(','\\)'], ['$','$']], displayMath: [['\\[','\\]'], ['$$','$$']] },
+      options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+
+  <style>
+    /* ── LAYOUT FULL HEIGHT ────────────────────────────────────── */
+    .research-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      height: calc(100vh - var(--header-h));
+      overflow: hidden;
+    }
+
+    /* ── PANEL IZQUIERDO — GRAFO ───────────────────────────────── */
+    .graph-panel {
+      position: relative;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    #graph-svg {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+
+    #graph-svg:active { cursor: grabbing; }
+
+    /* ── CONTROLES DEL GRAFO ───────────────────────────────────── */
+    .graph-controls {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .graph-controls .btn {
+      width: 34px; height: 34px;
+      padding: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    /* ── LEYENDA ───────────────────────────────────────────────── */
+    .graph-legend {
+      position: absolute;
+      bottom: 1rem;
+      left: 1rem;
+      background: rgba(13,15,20,0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.6rem 0.85rem;
+      z-index: 10;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-muted);
+      padding: 2px 0;
+    }
+
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── COUNTER ───────────────────────────────────────────────── */
+    .graph-counter {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      z-index: 10;
+    }
+
+    /* ── PANEL DERECHO — INFO ──────────────────────────────────── */
+    .info-panel {
+      background: var(--bg2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── ESTADO VACÍO ──────────────────────────────────────────── */
+    .panel-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 0.75rem;
+      color: var(--text-dim);
+      font-size: 13px;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .panel-empty i { font-size: 2rem; }
+
+    /* ── PAPER INFO ────────────────────────────────────────────── */
+    .paper-info {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .paper-info.visible { display: flex; }
+
+    .paper-info-header {
+      padding: 1.25rem 1.25rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .paper-category-badge {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid;
+      margin-bottom: 0.6rem;
+      display: inline-block;
+    }
+
+    .paper-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 0.4rem;
+    }
+
+    .paper-authors {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .paper-meta {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    /* ── LINKS ─────────────────────────────────────────────────── */
+    .paper-links {
+      display: flex;
+      gap: 6px;
+      padding: 0.75rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+
+    .paper-link-btn {
+      font-size: 12px;
+      font-family: var(--font-sans);
+      padding: 5px 10px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-mid);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      text-decoration: none;
+    }
+
+    .paper-link-btn:hover {
+      background: var(--bg3);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .paper-link-btn.primary {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .paper-link-btn.primary:hover {
+      background: var(--accent-dim);
+    }
+
+    /* ── TABS ──────────────────────────────────────────────────── */
+    .paper-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .paper-tab {
+      font-size: 12px;
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      font-family: var(--font-sans);
+    }
+
+    .paper-tab:hover { color: var(--text-muted); }
+    .paper-tab.active {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+    }
+
+    /* ── CONTENIDO DE TABS ─────────────────────────────────────── */
+    .paper-tab-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem 1.25rem;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .tab-panel p {
+      font-size: 13px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .notes-area {
+      width: 100%;
+      min-height: 180px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem;
+      color: var(--text);
+      font-size: 13px;
+      font-family: var(--font-sans);
+      line-height: 1.65;
+      resize: vertical;
+    }
+
+    .notes-area:focus {
+      outline: none;
+      border-color: var(--border-mid);
+    }
+
+    .save-notes-btn {
+      margin-top: 8px;
+      font-size: 12px;
+      padding: 5px 12px;
+    }
+
+    .save-notes-btn.saved {
+      border-color: var(--accent2);
+      color: var(--accent2);
+    }
+
+    /* ── TAGS ──────────────────────────────────────────────────── */
+    .tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 0.75rem;
+    }
+
+    .tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    /* ── CONEXIONES ────────────────────────────────────────────── */
+    .connection-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+      border-radius: var(--radius);
+      padding: 8px 6px;
+    }
+
+    .connection-item:hover { background: var(--bg3); }
+
+    .connection-type {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      flex-shrink: 0;
+      padding-top: 2px;
+      width: 60px;
+    }
+
+    .connection-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* ── PDF VIEWER ────────────────────────────────────────────── */
+    .pdf-viewer {
+      display: none;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0; left: 0;
+      background: var(--bg);
+      z-index: 20;
+    }
+
+    .pdf-viewer.visible { display: flex; }
+
+    .pdf-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      flex-shrink: 0;
+    }
+
+    .pdf-toolbar-title {
+      font-size: 12px;
+      color: var(--text-muted);
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #pdf-iframe {
+      flex: 1;
+      border: none;
+      background: #fff;
+    }
+
+    /* ── D3 STYLES ─────────────────────────────────────────────── */
+    .node circle {
+      stroke-width: 2;
+      cursor: pointer;
+      transition: r 0.2s;
+    }
+
+    .node circle:hover { filter: brightness(1.3); }
+    .node.selected circle { stroke-width: 3; filter: brightness(1.4); }
+
+    .node text {
+      font-size: 11px;
+      fill: var(--text-muted, #8890a4);
+      pointer-events: none;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .link {
+      stroke-opacity: 0.5;
+      stroke-width: 1.5;
+    }
+
+    .link.cites    { stroke: #4f8ef7; }
+    .link.cited_by { stroke: #7ecba1; }
+    .link.related  { stroke: #a78bfa; stroke-dasharray: 4,3; }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <a href="../index.html" class="logo">LRG · Redes Complejas</a>
+  <nav class="header-nav">
+    <a href="../index.html">Inicio</a>
+    <a href="theory.html">Teoría</a>
+    <a href="simulations.html">Simulaciones</a>
+    <a href="results.html">Resultados</a>
+    <a href="research.html">Investigación</a>
+    <a href="notes.html">Notas</a>
+    <a href="presentation.html">Presentación</a>
+  </nav>
+</header>
+
+<div class="page-wrapper" style="padding-top: var(--header-h);">
+<div class="research-layout">
+
+  <!-- ── PANEL IZQUIERDO: GRAFO ─────────────────────────────── -->
+  <div class="graph-panel">
+    <div class="graph-controls">
+      <button class="btn" title="Zoom in"  onclick="zoomIn()"><i class="ti ti-zoom-in"></i></button>
+      <button class="btn" title="Zoom out" onclick="zoomOut()"><i class="ti ti-zoom-out"></i></button>
+      <button class="btn" title="Centrar"  onclick="resetView()"><i class="ti ti-focus-centered"></i></button>
+    </div>
+
+    <svg id="graph-svg"></svg>
+
+    <div class="graph-counter" id="graph-counter">— papers · — conexiones</div>
+
+    <div class="graph-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#4f8ef7"></div> LRG</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#7ecba1"></div> Percolación</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e07b54"></div> RG / Física estadística</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> Teoría de redes</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#facc15"></div> Otro</div>
+      <div style="border-top: 1px solid var(--border); margin: 6px 0;"></div>
+      <div class="legend-item"><div style="width:20px;height:1.5px;background:#4f8ef7;flex-shrink:0;"></div> cita</div>
+      <div class="legend-item"><div style="width:20px;height:1.5px;background:#7ecba1;flex-shrink:0;"></div> citado por</div>
+      <div class="legend-item"><div style="width:20px;height:1.5px;background:#a78bfa;flex-shrink:0;border-top:1px dashed #a78bfa;"></div> relacionado</div>
+    </div>
+
+    <!-- PDF VIEWER (sobre el grafo) -->
+    <div class="pdf-viewer" id="pdf-viewer">
+      <div class="pdf-toolbar">
+        <button class="btn" style="width:30px;height:30px;padding:0;font-size:13px;flex-shrink:0;"
+          onclick="closePdf()"><i class="ti ti-arrow-left"></i></button>
+        <span class="pdf-toolbar-title" id="pdf-title">—</span>
+        <a id="pdf-new-tab" href="#" target="_blank" class="paper-link-btn" style="flex-shrink:0;">
+          <i class="ti ti-external-link"></i> Nueva pestaña
+        </a>
+      </div>
+      <iframe id="pdf-iframe" src=""></iframe>
+    </div>
+  </div>
+
+  <!-- ── PANEL DERECHO: INFO ───────────────────────────────── -->
+  <div class="info-panel" style="position:relative;">
+
+    <!-- Estado vacío -->
+    <div class="panel-empty" id="panel-empty">
+      <i class="ti ti-click"></i>
+      <span>Hacé click en un nodo<br>para ver el paper</span>
+    </div>
+
+    <!-- Info del paper seleccionado -->
+    <div class="paper-info" id="paper-info">
+
+      <div class="paper-info-header">
+        <div class="paper-category-badge" id="paper-badge">—</div>
+        <div class="paper-title"    id="paper-title">—</div>
+        <div class="paper-authors"  id="paper-authors">—</div>
+        <div class="paper-meta"     id="paper-meta">—</div>
+      </div>
+
+      <div class="paper-links" id="paper-links"></div>
+
+      <div class="paper-tabs">
+        <button class="paper-tab active" onclick="switchTab('abstract', this)">Abstract</button>
+        <button class="paper-tab"        onclick="switchTab('notes', this)">Mis notas</button>
+        <button class="paper-tab"        onclick="switchTab('connections', this)">Conexiones</button>
+      </div>
+
+      <div class="paper-tab-content">
+        <div class="tab-panel active" id="tab-abstract">
+          <p id="abstract-text">—</p>
+          <div class="tags-row" id="tags-row"></div>
+        </div>
+
+        <div class="tab-panel" id="tab-notes">
+          <textarea class="notes-area" id="notes-area" placeholder="Escribí tus notas sobre este paper..."></textarea>
+          <button class="btn save-notes-btn" id="save-notes-btn" onclick="saveNotes()">
+            <i class="ti ti-device-floppy"></i> Guardar notas
+          </button>
+        </div>
+
+        <div class="tab-panel" id="tab-connections">
+          <div id="connections-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+// ── COLORES POR CATEGORÍA ─────────────────────────────────────────
+const CAT_COLORS = {
+  lrg:        '#4f8ef7',
+  percolation:'#7ecba1',
+  rg:         '#e07b54',
+  networks:   '#a78bfa',
+  other:      '#facc15',
+};
+
+const CAT_LABELS = {
+  lrg:        'LRG',
+  percolation:'Percolación',
+  rg:         'RG / Física estadística',
+  networks:   'Teoría de redes',
+  other:      'Otro',
+};
+
+// ── ESTADO ────────────────────────────────────────────────────────
+let graphData   = null;
+let selectedId  = null;
+let simulation  = null;
+let svgZoom     = null;
+let gMain       = null;
+
+// ── CARGAR DATOS ──────────────────────────────────────────────────
+(async () => {
+  graphData = await loadData('papers.json');
+  if (!graphData) return;
+
+  document.getElementById('graph-counter').textContent =
+    `${graphData.nodes.length} papers · ${graphData.links.length} conexiones`;
+
+  initGraph();
+})();
+
+// ── INIT GRAFO D3 ─────────────────────────────────────────────────
+function initGraph() {
+  const svg    = d3.select('#graph-svg');
+  const width  = svg.node().clientWidth  || 700;
+  const height = svg.node().clientHeight || 600;
+
+  // Zoom
+  svgZoom = d3.zoom()
+    .scaleExtent([0.2, 4])
+    .on('zoom', e => gMain.attr('transform', e.transform));
+
+  svg.call(svgZoom);
+  gMain = svg.append('g');
+
+  // Flecha para aristas dirigidas
+  svg.append('defs').selectAll('marker')
+    .data(['cites', 'cited_by', 'related'])
+    .join('marker')
+    .attr('id', d => `arrow-${d}`)
+    .attr('viewBox', '0 -4 8 8')
+    .attr('refX', 22)
+    .attr('refY', 0)
+    .attr('markerWidth', 6)
+    .attr('markerHeight', 6)
+    .attr('orient', 'auto')
+    .append('path')
+    .attr('d', 'M0,-4L8,0L0,4')
+    .attr('fill', d => d === 'cites' ? '#4f8ef7' : d === 'cited_by' ? '#7ecba1' : '#a78bfa')
+    .attr('opacity', 0.6);
+
+  // Copia links para D3 (muta los objetos)
+  const links = graphData.links.map(d => ({ ...d }));
+  const nodes = graphData.nodes.map(d => ({ ...d }));
+
+  // Simulación de fuerzas
+  simulation = d3.forceSimulation(nodes)
+    .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+    .force('charge', d3.forceManyBody().strength(-400))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide(40));
+
+  // Aristas
+  const link = gMain.append('g')
+    .selectAll('line')
+    .data(links)
+    .join('line')
+    .attr('class', d => `link ${d.type}`)
+    .attr('marker-end', d => `url(#arrow-${d.type})`);
+
+  // Nodos
+  const node = gMain.append('g')
+    .selectAll('g')
+    .data(nodes)
+    .join('g')
+    .attr('class', 'node')
+    .call(d3.drag()
+      .on('start', dragStart)
+      .on('drag',  dragged)
+      .on('end',   dragEnd))
+    .on('click', (e, d) => { e.stopPropagation(); selectPaper(d.id); });
+
+  node.append('circle')
+    .attr('r', 16)
+    .attr('fill', d => CAT_COLORS[d.category] || CAT_COLORS.other)
+    .attr('fill-opacity', 0.85)
+    .attr('stroke', d => CAT_COLORS[d.category] || CAT_COLORS.other)
+    .attr('stroke-opacity', 0.4);
+
+  node.append('text')
+    .text(d => d.id.replace(/\d+$/, ' ' + d.id.match(/\d+$/)?.[0]))
+    .attr('text-anchor', 'middle')
+    .attr('dy', 28);
+
+  // Click en fondo → deseleccionar
+  svg.on('click', () => deselectPaper());
+
+  // Tick
+  simulation.on('tick', () => {
+    link
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x)
+      .attr('y2', d => d.target.y);
+
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+}
+
+// ── DRAG ──────────────────────────────────────────────────────────
+function dragStart(e, d) {
+  if (!e.active) simulation.alphaTarget(0.3).restart();
+  d.fx = d.x; d.fy = d.y;
+}
+function dragged(e, d) { d.fx = e.x; d.fy = e.y; }
+function dragEnd(e, d) {
+  if (!e.active) simulation.alphaTarget(0);
+  d.fx = null; d.fy = null;
+}
+
+// ── SELECCIONAR PAPER ─────────────────────────────────────────────
+function selectPaper(id) {
+  selectedId = id;
+  const paper = graphData.nodes.find(n => n.id === id);
+  if (!paper) return;
+
+  // Highlight nodo
+  d3.selectAll('.node').classed('selected', d => d.id === id);
+
+  // Mostrar panel
+  document.getElementById('panel-empty').style.display = 'none';
+  const info = document.getElementById('paper-info');
+  info.classList.add('visible');
+
+  // Badge categoría
+  const badge = document.getElementById('paper-badge');
+  badge.textContent = CAT_LABELS[paper.category] || paper.category;
+  badge.style.color = CAT_COLORS[paper.category] || CAT_COLORS.other;
+  badge.style.borderColor = CAT_COLORS[paper.category] || CAT_COLORS.other;
+
+  document.getElementById('paper-title').textContent   = paper.title;
+  document.getElementById('paper-authors').textContent = paper.authors;
+  document.getElementById('paper-meta').textContent    =
+    `${paper.year} · ${paper.journal}`;
+
+  // Links
+  const linksEl = document.getElementById('paper-links');
+  linksEl.innerHTML = '';
+
+  if (paper.url_arxiv || paper.url_official) {
+    const url = paper.url_arxiv || paper.url_official;
+    const label = paper.url_arxiv ? 'arXiv' : 'DOI';
+    linksEl.innerHTML += `
+      <a href="${url}" target="_blank" class="paper-link-btn">
+        <i class="ti ti-world"></i> ${label}
+      </a>`;
+  }
+
+  if (paper.url_supplementary) {
+    linksEl.innerHTML += `
+      <a href="${paper.url_supplementary}" target="_blank" class="paper-link-btn">
+        <i class="ti ti-file-description"></i> Material suplementario
+      </a>`;
+  }
+
+  if (paper.url_pdf) {
+    linksEl.innerHTML += `
+      <button class="paper-link-btn primary" onclick="openPdfInPanel('${paper.url_pdf}', '${paper.title.replace(/'/g,"\\'")}')">
+        <i class="ti ti-file-type-pdf"></i> Ver PDF
+      </button>
+      <a href="${paper.url_pdf}" target="_blank" class="paper-link-btn">
+        <i class="ti ti-external-link"></i> PDF nueva pestaña
+      </a>`;
+  } else {
+    linksEl.innerHTML += `
+      <span class="paper-link-btn" style="opacity:0.4;cursor:default;">
+        <i class="ti ti-file-type-pdf"></i> Sin PDF local
+      </span>`;
+  }
+
+  // Abstract
+  document.getElementById('abstract-text').textContent = paper.abstract || '—';
+
+  // Tags
+  const tagsEl = document.getElementById('tags-row');
+  tagsEl.innerHTML = (paper.tags || []).map(t =>
+    `<span class="tag">${t}</span>`).join('');
+
+  // Notas (desde localStorage)
+  const saved = localStorage.getItem(`paper_notes_${id}`);
+  document.getElementById('notes-area').value =
+    saved !== null ? saved : (paper.my_notes || '');
+
+  // Reset botón guardar
+  const saveBtn = document.getElementById('save-notes-btn');
+  saveBtn.classList.remove('saved');
+  saveBtn.innerHTML = '<i class="ti ti-device-floppy"></i> Guardar notas';
+
+  // Conexiones
+  renderConnections(id);
+
+  // Re-render MathJax
+  renderMath(document.getElementById('paper-info'));
+}
+
+function deselectPaper() {
+  selectedId = null;
+  d3.selectAll('.node').classed('selected', false);
+  document.getElementById('panel-empty').style.display = '';
+  document.getElementById('paper-info').classList.remove('visible');
+}
+
+// ── CONEXIONES ────────────────────────────────────────────────────
+function renderConnections(id) {
+  const list = document.getElementById('connections-list');
+  list.innerHTML = '';
+
+  const related = graphData.links.filter(l =>
+    l.source === id || l.target === id ||
+    l.source?.id === id || l.target?.id === id
+  );
+
+  if (related.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-dim);font-size:13px;">Sin conexiones registradas.</p>';
+    return;
+  }
+
+  related.forEach(link => {
+    const sourceId = link.source?.id || link.source;
+    const targetId = link.target?.id || link.target;
+    const otherId  = sourceId === id ? targetId : sourceId;
+    const other    = graphData.nodes.find(n => n.id === otherId);
+    if (!other) return;
+
+    const typeLabel = sourceId === id ? '→ cita' : '← citado por';
+    const typeOverride = link.type === 'related' ? '↔ relacionado' : typeLabel;
+
+    const el = document.createElement('div');
+    el.className = 'connection-item';
+    el.innerHTML = `
+      <span class="connection-type">${typeOverride}</span>
+      <span class="connection-title">${other.title} <span style="color:var(--text-dim)">(${other.year})</span></span>
+    `;
+    el.onclick = () => selectPaper(otherId);
+    list.appendChild(el);
+  });
+}
+
+// ── TABS ──────────────────────────────────────────────────────────
+function switchTab(name, btn) {
+  document.querySelectorAll('.paper-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+// ── NOTAS ─────────────────────────────────────────────────────────
+function saveNotes() {
+  if (!selectedId) return;
+  const val = document.getElementById('notes-area').value;
+  localStorage.setItem(`paper_notes_${selectedId}`, val);
+  const btn = document.getElementById('save-notes-btn');
+  btn.classList.add('saved');
+  btn.innerHTML = '<i class="ti ti-check"></i> Guardado';
+  setTimeout(() => {
+    btn.classList.remove('saved');
+    btn.innerHTML = '<i class="ti ti-device-floppy"></i> Guardar notas';
+  }, 2000);
+}
+
+// ── PDF VIEWER ────────────────────────────────────────────────────
+function openPdfInPanel(url, title) {
+  document.getElementById('pdf-title').textContent = title;
+  document.getElementById('pdf-new-tab').href = url;
+  document.getElementById('pdf-iframe').src = url;
+  document.getElementById('pdf-viewer').classList.add('visible');
+}
+
+function closePdf() {
+  document.getElementById('pdf-viewer').classList.remove('visible');
+  document.getElementById('pdf-iframe').src = '';
+}
+
+// ── ZOOM CONTROLS ─────────────────────────────────────────────────
+function zoomIn()    { d3.select('#graph-svg').transition().call(svgZoom.scaleBy, 1.4); }
+function zoomOut()   { d3.select('#graph-svg').transition().call(svgZoom.scaleBy, 0.7); }
+function resetView() {
+  const svg    = d3.select('#graph-svg');
+  const width  = svg.node().clientWidth;
+  const height = svg.node().clientHeight;
+  svg.transition().call(
+    svgZoom.transform,
+    d3.zoomIdentity.translate(width / 2, height / 2).scale(1).translate(-width / 2, -height / 2)
+  );
+}
+
+// ── RESIZE ────────────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  if (!simulation) return;
+  const svg    = document.getElementById('graph-svg');
+  const width  = svg.clientWidth;
+  const height = svg.clientHeight;
+  simulation.force('center', d3.forceCenter(width / 2, height / 2));
+  simulation.alpha(0.1).restart();
+});
+
+// ── NAV ACTIVO ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.header-nav a').forEach(a => a.classList.remove('active'));
+  document.querySelector('.header-nav a[href="research.html"]').classList.add('active');
+});
+</script>
+
+</body>
+</html>
