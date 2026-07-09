@@ -24,7 +24,7 @@
       "category": "percolation",
       "url_arxiv": "",
       "url_official": "https://doi.org/10.1002/rsa.3240060204",
-      "url_pdf": "",
+      "url_pdf": "../bib/molloy1995.pdf",
       "abstract": "Given a sequence of nonnegative real numbers λ0, λ1, ... which sum to 1, we consider a random graph having approximately λi n vertices of degree i. We ask: for what sequences is there almost surely a giant component, and for what sequences are all components small? We show that the critical point is when the sum of λi i(i-2) changes sign.",
       "my_notes": "Paper que establece el criterio de Molloy-Reed: p_c = <k> / (<k²> - <k>). Fundamental para entender el umbral de percolación en redes con distribución de grado arbitraria.",
       "tags": ["percolación", "componente gigante", "distribución de grado", "ER"]
